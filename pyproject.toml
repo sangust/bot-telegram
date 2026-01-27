@@ -1,25 +1,23 @@
-[project]
+[tool.poetry]
 name = "garimpo"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "santana",email = "sannt11na@sempreceub.com"}
+    "santana <sannt11na@sempreceub.com>",
+    "sangust <sannt11na@gmail.com>"
 ]
-readme = "README.md"
-requires-python = ">=3.14"
-dependencies = [
-    "httpx (>=0.28.1,<0.29.0)",
-    "pandas (>=2.2,<3.0)",
-    "streamlit (>=1.53.1,<2.0.0)",
-    "sqlalchemy (>=2.0.46,<3.0.0)",
-    "pydantic (>=2.12.5,<3.0.0)",
-    "python-dotenv (>=1.2.1,<2.0.0)",
-    "python-telegram-bot (>=22.6,<23.0)",
-    "selenium (>=4.40.0,<5.0.0)"
-]
+packages = [{ include = "garimpo", from = "src" }]
 
-[tool.poetry]
-packages = [{include = "garimpo", from = "src"}]
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+httpx = "^0.28.1"
+pandas = "^2.2"
+streamlit = "^1.53.1"
+sqlalchemy = "^2.0.46"
+pydantic = "^2.12.5"
+python-dotenv = "^1.2.1"
+python-telegram-bot = "^22.6"
+selenium = "^4.40.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

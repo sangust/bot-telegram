@@ -11,11 +11,14 @@ class Product(BASE):
     marca = Column(String(100), nullable=False)
     nome = Column(String(200))
     tamanho = Column(String(50))
-    preco = Column(Numeric(10, 2))
+    preco_atual = Column(Numeric(10, 2))
+    preco_real = Column(Numeric(10,2))
     imagem = Column(String)
     disponivel = Column(Boolean)
     link = Column(String)
     variante_id = Column(BigInteger, nullable=False)
     data_coleta = Column(DateTime(timezone=True))
+    
+    #criar um compare_price
 
 criar_table()

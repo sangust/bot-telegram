@@ -1,4 +1,6 @@
 from telegram import Bot
+from telegram.request import HTTPXRequest
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -7,9 +9,15 @@ ENGINE = create_engine(DATABASE_URL, echo=False)
 SESSION = sessionmaker(bind=ENGINE)
 BASE = declarative_base()
 
+request = HTTPXRequest(
+    connect_timeout=30,
+    read_timeout=30,
+    write_timeout=30,
+    pool_timeout=30
+)
 BOT_TOKEN = "8427864539:AAGHJ4mGbgu67ulxmXJo3-WvHgldj2jGc_s"
 CHAT_ID = "-1003531860533"
-BOT = Bot(token=BOT_TOKEN)
+BOT = Bot(token=BOT_TOKEN, request=request)
 
 
 SHOP_URLS = {
@@ -27,3 +35,5 @@ SHOP_URLS = {
 
 def criar_table():
     BASE.metadata.create_all(bind=ENGINE)
+
+criar_table()
