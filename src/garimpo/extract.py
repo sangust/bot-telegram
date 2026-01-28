@@ -9,9 +9,6 @@ from .models import Product
 from .schemas import ProductSchema
 
 
-# =========================
-# Utils
-# =========================
 
 def safe_float(value) -> Optional[float]:
     try:
@@ -20,9 +17,6 @@ def safe_float(value) -> Optional[float]:
         return None
 
 
-# =========================
-# Extração
-# =========================
 
 def extract_products(marca: str, url: str) -> List[ProductSchema]:
     """
@@ -54,9 +48,6 @@ def extract_products(marca: str, url: str) -> List[ProductSchema]:
                     if preco_atual is None:
                         raise ValueError("price inválido")
 
-                    # regra de negócio:
-                    # se não existir preço cheio ou não houver desconto,
-                    # o preço cheio = preço atual
                     if compare_at_price and compare_at_price > preco_atual:
                         preco_real = compare_at_price
                     else:

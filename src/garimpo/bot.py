@@ -1,5 +1,5 @@
 from .config import BOT, CHAT_ID, SESSION
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, and_
 from .models import Product
 from .extract import executar_coleta
 from collections import defaultdict
@@ -10,17 +10,14 @@ def buscar_produtos_desconto():
     session = SESSION()
     try:
         return session.scalars(
-            select(Product)
-            .where(
-                Product.disponivel.is_(True),
-                Product.preco_atual < Product.preco_real,
-                or_(
-                    Product.preco_atual < 500,
-                    Product.disponivel.is_(True)
-                )
+        select(Product)
+        .where(
+            
+                    Product.disponivel.is_(True),
+                    Product.preco_atual < Product.preco_real
             )
-            .order_by(Product.preco_atual.asc())
-            ).all()
+        .order_by(Product.preco_atual.asc())
+        ).all()
     finally:
         session.close()
 

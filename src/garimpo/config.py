@@ -30,10 +30,9 @@ SHOP_URLS = {
     "egho studios": "https://egho.com.br/products.json?limit=250",
     "sufgang": "https://sufgang.com.br/products.json?limit=250",
     "ciena lab": "https://cienalab.com.br/products.json?limit=250",
-    "anty": "https://www.anty.com.br/products.json?limit=250"
+    "anty": "https://www.anty.com.br/products.json?limit=250",
+    "icecompany": "https://www.icecompany.com.br/products.json"
 }
 
 def criar_table():
     BASE.metadata.create_all(bind=ENGINE)
-
-criar_table()
