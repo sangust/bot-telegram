@@ -37,3 +37,4 @@ SHOP_URLS = {
 
 def criar_table():
     BASE.metadata.create_all(bind=ENGINE)
+load_dotenv()
