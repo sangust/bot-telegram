@@ -32,4 +32,7 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Executar Bot
-        run: PYTHONPATH=src poetry run python -m src.garimpo.bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: PYTHONPATH=garimpo poetry run python -m src.garimpo.bot
