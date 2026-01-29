@@ -12,9 +12,8 @@ def buscar_produtos_desconto():
         return session.scalars(
         select(Product)
         .where(
-            
-                    Product.disponivel.is_(True),
-                    Product.preco_atual < Product.preco_real
+                Product.disponivel.is_(True),
+                Product.preco_atual < Product.preco_real
             )
         .order_by(Product.preco_atual.asc())
         ).all()
