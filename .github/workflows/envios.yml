@@ -35,4 +35,4 @@ jobs:
         run: poetry install --no-interaction --no-root --sync
 
       - name: Executar Bot
-        run: poetry run python main.py
+        run: poetry run python -m src.garimpo.Bot
