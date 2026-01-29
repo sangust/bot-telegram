@@ -2,9 +2,9 @@ name: Run Bot
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   run:
@@ -19,20 +19,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar Poetry
+      - name: Instalar Poetry corretamente
         run: |
-          pip install poetry
-          poetry --version
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verificar Poetry
+        run: poetry --version
 
       - name: Configurar Poetry
-        run: |
-          poetry config virtualenvs.create false
+        run: poetry config virtualenvs.create false
 
       - name: Regenerar lockfile
         run: poetry lock
 
       - name: Instalar dependências
-        run: poetry install --no-interaction --no-root --sync
+        run: poetry install --no-interaction --no-root
 
       - name: Executar Bot
         run: poetry run python -m src.garimpo.Bot
