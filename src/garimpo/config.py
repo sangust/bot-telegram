@@ -1,6 +1,7 @@
 from telegram import Bot
 from telegram.request import HTTPXRequest
-
+from dotenv import load_dotenv
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -15,8 +16,8 @@ request = HTTPXRequest(
     write_timeout=30,
     pool_timeout=30
 )
-BOT_TOKEN = "8427864539:AAGHJ4mGbgu67ulxmXJo3-WvHgldj2jGc_s"
-CHAT_ID = "-1003531860533"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 BOT = Bot(token=BOT_TOKEN, request=request)
 
 

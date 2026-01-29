@@ -1,0 +1,42 @@
+name: Enviar Promoções Diárias
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+  
+  # Permite rodar manualmente pra testar clicando num botão
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa seu código
+      - name: Check out do código
+        uses: actions/checkout@v4
+
+      # 2. Instala Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 3. Instala Poetry
+      - name: Instalar Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      # 4. Instala as libs (python-telegram-bot, etc)
+      - name: Instalar dependências
+        run: poetry install --no-interaction --no-root
+
+      # 5. RODA O BOT
+      - name: Executar Bot
+        env:
+          # Pega os segredos que configuramos no Passo 3
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: poetry run python -m src.garimpo.bot

@@ -12,12 +12,12 @@ packages = [{ include = "garimpo", from = "src" }]
 python = ">=3.10,<4.0"
 httpx = "^0.28.1"
 pandas = "^2.2"
-streamlit = "^1.53.1"
 sqlalchemy = "^2.0.46"
 pydantic = "^2.12.5"
 python-dotenv = "^1.2.1"
 python-telegram-bot = "^22.6"
 selenium = "^4.40.0"
+dotenv = "^0.9.9"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
