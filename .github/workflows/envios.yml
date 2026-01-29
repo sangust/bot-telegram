@@ -1,4 +1,4 @@
-name: Run Bot
+name: Bot do carai
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Executar Bot
-        run: poetry run python -m src.garimpo.Bot
+        run: PYTHONPATH=src poetry run python -m garimpo.Bot
