@@ -37,6 +37,6 @@ jobs:
       - name: Executar Bot
         env:
           # Pega os segredos que configuramos no Passo 3
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: poetry run python -m src.garimpo.bot
