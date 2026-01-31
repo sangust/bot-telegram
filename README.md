@@ -1,1 +1,1 @@
-fiz um bot muito doido de promoção
+automacoes de promocao de Marcas de Roupas nacionais.
