@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, tuple_
 from datetime import datetime, timezone
 
-from .config import SHOP_URLS, SESSION
-from .models import Product
-from .schemas import ProductSchema
+from ..infra.config import SHOP_URLS, SESSION
+from ..domain.models import Product
+from ..infra.schemas import ProductSchema
 
 
 
@@ -80,10 +80,6 @@ def extract_products(marca: str, url: str) -> List[ProductSchema]:
     return produtos_validos
 
 
-# =========================
-# Persistência
-# =========================
-
 def salvar_no_banco(
     produtos: List[ProductSchema],
     session: Session
@@ -107,7 +103,6 @@ def salvar_no_banco(
     for produto in produtos:
         chave = (produto.marca, produto.variante_id)
 
-        # ---- PRODUTO JÁ EXISTE
         if chave in mapa_existentes:
             p = mapa_existentes[chave]
 
@@ -123,7 +118,6 @@ def salvar_no_banco(
 
                 produtos_alterados.append(p)
 
-        # ---- PRODUTO NOVO
         else:
             novo_produto = Product(
                 marca=produto.marca,
@@ -145,11 +139,6 @@ def salvar_no_banco(
         session.commit()
 
     return produtos_alterados
-
-
-# =========================
-# Orquestração
-# =========================
 
 def executar_coleta() -> None:
     """

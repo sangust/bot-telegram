@@ -1,6 +1,6 @@
-from .config import BOT, CHAT_ID, SESSION
+from ..infra.config import BOT, CHAT_ID, SESSION
 from sqlalchemy import select, or_, and_
-from .models import Product
+from ..infra.models import Product
 from .extract import executar_coleta
 from collections import defaultdict
 from typing import Dict, List

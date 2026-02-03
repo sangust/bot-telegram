@@ -18,6 +18,9 @@ python-dotenv = "^1.2.1"
 python-telegram-bot = "^22.6"
 selenium = "^4.40.0"
 dotenv = "^0.9.9"
+beautifulsoup4 = "^4.14.3"
+google = "^3.0.0"
+google-cloud-bigquery = "^3.40.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
