@@ -13,10 +13,6 @@ class LocalDataBase():
         self.SESSION = sessionmaker(bind=self.ENGINE)
         self.BASE = declarative_base()
 
-    def criar_table_orm(self):
-        self.BASE.metadata.create_all(self.ENGINE)
-
-
 
 class CloudDataBase():
     def __init__(self, credentials_path:str = "config.json", project_id: str = "eco-avenue-461519-f8", table:str="telegramdata.shops"):

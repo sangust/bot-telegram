@@ -1,9 +1,11 @@
 from sqlalchemy import (
     Column, Integer, String, BigInteger,
-    Boolean, DateTime, Numeric, UniqueConstraint)
+    Boolean, Date, Numeric, UniqueConstraint)
 from sqlalchemy.orm import declarative_base
+from src.garimpo.infra.database import LocalDataBase
 
-class Product(declarative_base()):
+Base = declarative_base()
+class Product(Base):
     __tablename__ = "products"
     __table_args__ = (UniqueConstraint("marca", "variante_id", name="marca_variante"),)
 
@@ -17,6 +19,5 @@ class Product(declarative_base()):
     disponivel = Column(Boolean, nullable=False)
     link = Column(String)
     variante_id = Column(BigInteger, nullable=False)
-    data_coleta = Column(DateTime(timezone=True))
-    
+    data_coleta = Column(Date)
 

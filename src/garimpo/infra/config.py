@@ -1,6 +1,6 @@
 
 DATABASE_URL = "sqlite:///data/products.db"
-SHOP_URLS = {
+SHOPIFY_URLS = {
     "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
     "New": "https://newnewnew.com.br/products.json?limit=250",
     "PIET": "https://piet.com.br/products.json?limit=250",

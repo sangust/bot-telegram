@@ -1,104 +1,39 @@
-from ..infra.config import BOT, CHAT_ID, SESSION
-from sqlalchemy import select, or_, and_
-from ..infra.models import Product
-from .extract import executar_coleta
-from collections import defaultdict
-from typing import Dict, List
+from telegram import Bot
+from telegram.request import HTTPXRequest
+from ..domain.models import Product
+from ..infra.repository import LocalProductRepository
 import asyncio
 
-def buscar_produtos_desconto():
-    session = SESSION()
-    try:
-        return session.scalars(
-        select(Product)
-        .where(
-                Product.disponivel.is_(True),
-                Product.preco_atual < Product.preco_real
-            )
-        .order_by(Product.preco_atual.asc())
-        ).all()
-    finally:
-        session.close()
+import os
 
-
-
-def formatar_produto_agrupado(produto: dict):
-    tamanhos = ", ".join(produto["tamanhos"])
-
-    texto = (
-        f"""{produto['marca']} | {produto['nome']}
-Valor Cheio -> R$ {produto['preco_real']:.2f}
-Valor Atual -> R$ {produto['preco_atual']:.2f}
-
-Tamanhos disponíveis: {tamanhos}
-
-LINK: {produto['link']}"""
-    )
-
-    return texto, produto["imagem"]
-
-
-
-def agrupar_produtos(produtos: List[Product]) -> List[dict]:
-    agrupados: Dict[tuple, dict] = {}
-
-    for p in produtos:
-        chave = (
-            p.marca,
-            p.nome,
-            p.link,
-            p.preco_atual,
-            p.preco_real,
+class PromoBot():
+    def __init__(self, BOT_TOKEN = os.getenv("BOT_TOKEN"), CHAT_ID = os.getenv("CHAT_ID")):
+        self.chat_id = CHAT_ID
+        self.REQUEST = HTTPXRequest(
+            connect_timeout=30,
+            read_timeout=30,
+            write_timeout=30,
+            pool_timeout=30
         )
+        self.bot = Bot(token=BOT_TOKEN, request=self.REQUEST)
 
-        if chave not in agrupados:
-            agrupados[chave] = {
-                "marca": p.marca,
-                "nome": p.nome,
-                "link": p.link,
-                "preco_atual": p.preco_atual,
-                "preco_real": p.preco_real,
-                "imagem": p.imagem,
-                "tamanhos": set(),
-            }
+    
+    async def send_promotions(self):
+        discount_products = LocalProductRepository().discount_products()
+        if not discount_products:
+            return
+    
+        for product in discount_products:
+            msg = f"""
+🔥 {product.marca} || {product.marca}\n
+💰 Preço Normal: R$ {product.preco_real}
+💰 Preço Atual: R$ {product.preco_atual}
+Tamanhos Disponivel: {product.tamanhos_disponiveis}
 
-        agrupados[chave]["tamanhos"].add(p.tamanho)
-
-    # converte set → lista ordenada
-    for produto in agrupados.values():
-        produto["tamanhos"] = sorted(produto["tamanhos"])
-
-    return list(agrupados.values())
-
-
-
-async def enviar_promos():
-    produtos = buscar_produtos_desconto()
-
-    if not produtos:
-        return
-
-    produtos_agrupados = agrupar_produtos(produtos)
-
-    for produto in produtos_agrupados:
-        texto, imagem = formatar_produto_agrupado(produto)
-
-        try:
-            await BOT.send_photo(
-                chat_id=CHAT_ID,
-                photo=imagem,
-                caption=texto
-            )
-        except Exception as e:
-            print(f"[ERRO TELEGRAM] {e}")
-
-        await asyncio.sleep(12)
-
-
-
-
-
-
-if __name__ == "__main__":
-    executar_coleta()
-    asyncio.run(enviar_promos())
+🔗Link:\n {product.link}
+                """
+            await self.bot.send_photo(
+                chat_id=self.chat_id,
+                photo=product.imagem,
+                caption=msg)
+            await asyncio.sleep(10)
