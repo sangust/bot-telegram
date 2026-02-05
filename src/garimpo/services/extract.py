@@ -2,7 +2,7 @@ import httpx
 from datetime import datetime, timezone
 from ..infra.config import SHOPIFY_URLS
 from ..infra.schemas import ProductSchema
-from ..infra.database import LocalDataBase, CloudDataBase
+from ..infra.database import LocalDataBase
 from ..infra.repository import LocalProductRepository
 
 

@@ -25,7 +25,7 @@ class PromoBot():
     
         for product in discount_products:
             msg = f"""
-🔥 {product.marca} || {product.marca}\n
+🔥 {product.marca} || {product.nome}\n
 💰 Preço Normal: R$ {product.preco_real}
 💰 Preço Atual: R$ {product.preco_atual}
 Tamanhos Disponivel: {product.tamanhos_disponiveis}
