@@ -1,10 +1,11 @@
 import httpx
 from datetime import datetime, timezone
-from ..infra.config import SHOPIFY_URLS
+from ..infra.config import SHOPIFY_URLS, NUVEMSHOP_URLS
 from ..infra.schemas import ProductSchema
 from ..infra.database import LocalDataBase
 from ..infra.repository import LocalProductRepository
-
+from bs4 import BeautifulSoup
+import re
 
 class extract:
     def __init__(self, db = LocalDataBase, query=LocalProductRepository):
@@ -64,5 +65,265 @@ class extract:
         
         self.db.commit() 
 
-    def nuvemshop():
-        ...
+        
+    def nuvemshop(self, NUVEMSHOP_URLS = NUVEMSHOP_URLS):
+        """
+        Extrai produtos de lojas Nuvemshop via web scraping
+        
+        NUVEMSHOP_URLS deve ser um dict: {"marca": "https://loja.com.br"}
+        """
+        
+        for marca, base_url in NUVEMSHOP_URLS.items():
+            try:
+                base_url = base_url.rstrip('/')
+                produtos_url = f"{base_url}/produtos/"
+                
+                print(f"[INFO] Iniciando coleta para {marca}")
+                
+                with httpx.Client(timeout=10, follow_redirects=True) as client:
+                    page = 1
+                    has_more = True
+                    produtos_processados = 0
+                    
+                    while has_more:
+                        try:
+                            url = f"{produtos_url}?page={page}"
+                            print(f"[INFO] Acessando página {page}: {url}")
+                            
+                            response = client.get(url)
+                            response.raise_for_status()
+                            soup = BeautifulSoup(response.text, 'html.parser')
+                            
+                            # Método 1: Buscar por itens de produto na grid
+                            # Nuvemshop geralmente usa classes como "item-product", "product-item"
+                            product_items = soup.select('.item-product, .product-item, [itemtype*="Product"]')
+                            
+                            print(f"[DEBUG] Itens de produto encontrados (método 1): {len(product_items)}")
+                            
+                            # Método 2: Buscar links que vão para /produtos/slug/
+                            if not product_items:
+                                all_links = soup.select('a[href*="/produtos/"]')
+                                print(f"[DEBUG] Links com /produtos/ encontrados: {len(all_links)}")
+                                
+                                # Filtra para pegar apenas produtos (não categorias)
+                                product_links = []
+                                seen_slugs = set()
+                                
+                                for link in all_links:
+                                    href = link.get('href', '')
+                                    # Formato esperado: /produtos/nome-do-produto/ ou https://loja.com.br/produtos/nome-do-produto/
+                                    match = re.search(r'/produtos/([a-z0-9\-]+)/?$', href)
+                                    if match:
+                                        slug = match.group(1)
+                                        if slug not in seen_slugs and slug != '':
+                                            seen_slugs.add(slug)
+                                            product_links.append((slug, href))
+                                
+                                print(f"[DEBUG] Produtos únicos identificados: {len(product_links)}")
+                                
+                                if not product_links:
+                                    print(f"[INFO] Nenhum produto encontrado na página {page}")
+                                    has_more = False
+                                    break
+                            else:
+                                # Extrai links dos itens encontrados
+                                product_links = []
+                                for item in product_items:
+                                    link = item.select_one('a[href*="/produtos/"]')
+                                    if link:
+                                        href = link.get('href', '')
+                                        match = re.search(r'/produtos/([a-z0-9\-]+)/?$', href)
+                                        if match:
+                                            product_links.append((match.group(1), href))
+                            
+                            # Processa cada produto
+                            for slug, href in product_links:
+                                try:
+                                    # Monta URL completa se necessário
+                                    if href.startswith('http'):
+                                        product_url = href
+                                    else:
+                                        product_url = f"{base_url}{href}"
+                                    
+                                    print(f"[INFO] Processando produto: {slug}")
+                                    
+                                    prod_response = client.get(product_url)
+                                    prod_response.raise_for_status()
+                                    prod_soup = BeautifulSoup(prod_response.text, 'html.parser')
+                                    
+                                    # Extrai o nome do produto
+                                    nome_element = prod_soup.select_one('h1.product-name, h1[itemprop="name"], .product-title h1, h1')
+                                    nome = nome_element.get_text(strip=True) if nome_element else slug.replace('-', ' ').title()
+                                    print(f"[DEBUG] Nome: {nome}")
+                                    
+                                    # Extrai preço - busca em vários possíveis locais
+                                    preco_atual = None
+                                    
+                                    # Tenta vários seletores comuns
+                                    price_selectors = [
+                                        'span.price-amount',
+                                        'span[itemprop="price"]',
+                                        '.product-price span',
+                                        '#price_display',
+                                        '.js-price-display',
+                                    ]
+                                    
+                                    for selector in price_selectors:
+                                        preco_element = prod_soup.select_one(selector)
+                                        if preco_element:
+                                            preco_text = preco_element.get_text(strip=True)
+                                            print(f"[DEBUG] Texto do preço ({selector}): {preco_text}")
+                                            
+                                            # Remove tudo exceto números e vírgula
+                                            preco_clean = re.sub(r'[^\d,]', '', preco_text)
+                                            if preco_clean:
+                                                try:
+                                                    preco_atual = float(preco_clean.replace(',', '.'))
+                                                    print(f"[DEBUG] Preço parseado: {preco_atual}")
+                                                    break
+                                                except ValueError:
+                                                    continue
+                                    
+                                    if preco_atual is None:
+                                        print(f"[WARN] Preço não encontrado para {slug}, pulando...")
+                                        continue
+                                    
+                                    # Preço comparativo (desconto)
+                                    preco_real = preco_atual
+                                    compare_element = prod_soup.select_one('.price-compare, .compare-at-price, del, s')
+                                    if compare_element:
+                                        compare_text = compare_element.get_text(strip=True)
+                                        compare_clean = re.sub(r'[^\d,]', '', compare_text)
+                                        if compare_clean:
+                                            try:
+                                                compare_at_price = float(compare_clean.replace(',', '.'))
+                                                if compare_at_price > preco_atual:
+                                                    preco_real = compare_at_price
+                                                    print(f"[DEBUG] Preço original (com desconto): {preco_real}")
+                                            except ValueError:
+                                                pass
+                                    
+                                    # Extrai imagem
+                                    imagem = None
+                                    img_element = prod_soup.select_one('.product-image img, img[itemprop="image"], .js-product-slide-img')
+                                    if img_element:
+                                        imagem = img_element.get('data-src') or img_element.get('src')
+                                        if imagem and imagem.startswith('//'):
+                                            imagem = 'https:' + imagem
+                                        print(f"[DEBUG] Imagem: {imagem[:50] if imagem else 'Não encontrada'}...")
+                                    
+                                    # Extrai variantes (tamanhos/cores)
+                                    variantes = []
+                                    
+                                    # Busca por select de variantes
+                                    variant_select = prod_soup.select_one('select.js-variation-option, select[name*="variation"]')
+                                    if variant_select:
+                                        options = variant_select.find_all('option')
+                                        print(f"[DEBUG] Variantes encontradas via select: {len(options)}")
+                                        for option in options:
+                                            variant_text = option.get_text(strip=True)
+                                            variant_id = option.get('value', '')
+                                            # Pula opções vazias ou de placeholder
+                                            if variant_text and variant_text.lower() not in ['selecione', 'escolha', '']:
+                                                disponivel = not option.get('disabled', False)
+                                                variantes.append({
+                                                    'id': variant_id or f"{slug}-{len(variantes)}",
+                                                    'tamanho': variant_text,
+                                                    'disponivel': disponivel
+                                                })
+                                    
+                                    # Busca por botões de variantes
+                                    if not variantes:
+                                        variant_buttons = prod_soup.select('.js-variant-option, button[data-option]')
+                                        print(f"[DEBUG] Variantes encontradas via botões: {len(variant_buttons)}")
+                                        for button in variant_buttons:
+                                            variant_text = button.get_text(strip=True)
+                                            variant_id = button.get('data-option', '') or button.get('data-value', '')
+                                            disponivel = 'disabled' not in button.get('class', [])
+                                            if variant_text:
+                                                variantes.append({
+                                                    'id': variant_id or f"{slug}-{len(variantes)}",
+                                                    'tamanho': variant_text,
+                                                    'disponivel': disponivel
+                                                })
+                                    
+                                    # Se não encontrou variantes, cria uma padrão
+                                    if not variantes:
+                                        print(f"[DEBUG] Nenhuma variante encontrada, criando padrão")
+                                        # Verifica disponibilidade geral do produto
+                                        disponivel = True
+                                        out_of_stock = prod_soup.select_one('.out-of-stock, .product-unavailable')
+                                        if out_of_stock:
+                                            disponivel = False
+                                        
+                                        variantes.append({
+                                            'id': slug,
+                                            'tamanho': 'Único',
+                                            'disponivel': disponivel
+                                        })
+                                    
+                                    print(f"[DEBUG] Total de variantes a salvar: {len(variantes)}")
+                                    
+                                    # Salva cada variante
+                                    for variant in variantes:
+                                        try:
+                                            # Gera ID único baseado em marca + slug + tamanho
+                                            variant_hash = hash(f"{marca}-{slug}-{variant['tamanho']}") % (10 ** 10)
+                                            
+                                            from ..infra.schemas import ProductSchema
+                                            
+                                            produto = ProductSchema(
+                                                marca=marca,
+                                                nome=nome,
+                                                variante_id=variant_hash,
+                                                preco_atual=preco_atual,
+                                                preco_real=preco_real,
+                                                disponivel=variant['disponivel'],
+                                                data_coleta=datetime.now(timezone.utc).date(),
+                                                tamanho=variant['tamanho'],
+                                                link=product_url,
+                                                imagem=imagem
+                                            )
+                                            
+                                            print(f"[INFO] Salvando variante: {nome} - {variant['tamanho']}")
+                                            
+                                            try:
+                                                self.db.update(product=produto)
+                                                print(f"[SUCCESS] Produto atualizado no DB")
+                                            except Exception as update_error:
+                                                print(f"[DEBUG] Update falhou ({update_error}), tentando add...")
+                                                self.db.add(product=produto)
+                                                print(f"[SUCCESS] Produto adicionado no DB")
+                                            
+                                            produtos_processados += 1
+                                        
+                                        except Exception as e:
+                                            print(f"[ERRO VARIANTE] Marca={marca} | Produto={nome} | Variante={variant['tamanho']} | Erro={e}")
+                                
+                                except Exception as e:
+                                    print(f"[ERRO PRODUTO] Marca={marca} | Slug={slug} | Erro={e}")
+                                    import traceback
+                                    traceback.print_exc()
+                            
+                            # Verifica se há próxima página
+                            page += 1
+                            next_link = soup.select_one('a.next, a[rel="next"], .pagination-next')
+                            if not next_link or page > 20:  # Limite de segurança
+                                has_more = False
+                        
+                        except httpx.HTTPStatusError as e:
+                            if e.response.status_code == 404:
+                                print(f"[INFO] Página {page} não encontrada (404), finalizando paginação")
+                                has_more = False
+                            else:
+                                raise
+                    
+                    print(f"[INFO] Total de produtos processados para {marca}: {produtos_processados}")
+            
+            except Exception as e:
+                print(f"[ERRO COLETA] Marca={marca} | Erro={e}")
+                import traceback
+                traceback.print_exc()
+        
+        self.db.commit()
+        print(f"[SUCCESS] Commit realizado no banco de dados")

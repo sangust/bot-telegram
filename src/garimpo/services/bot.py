@@ -18,22 +18,40 @@ class PromoBot():
         self.bot = Bot(token=BOT_TOKEN, request=self.REQUEST)
 
     
-    async def send_promotions(self):
-        discount_products = LocalProductRepository().discount_products()
-        if not discount_products:
-            return
-    
-        for product in discount_products:
-            msg = f"""
+    async def send_promotions(self, marca: str= "default"):
+        if marca != "default":
+            discount_products = LocalProductRepository().discount_products(marca=marca)
+            for product in discount_products:
+                msg = f"""
 🔥 {product.marca} || {product.nome}\n
 💰 Preço Normal: R$ {product.preco_real}
 💰 Preço Atual: R$ {product.preco_atual}
 Tamanhos Disponivel: {product.tamanhos_disponiveis}
 
 🔗Link:\n {product.link}
-                """
-            await self.bot.send_photo(
-                chat_id=self.chat_id,
-                photo=product.imagem,
-                caption=msg)
-            await asyncio.sleep(10)
+                    """
+                await self.bot.send_photo(
+                    chat_id=self.chat_id,
+                    photo=product.imagem,
+                    caption=msg)
+                await asyncio.sleep(10)
+
+        else:
+            discount_products = LocalProductRepository().discount_products()
+            if not discount_products:
+                return
+        
+            for product in discount_products:
+                msg = f"""
+    🔥 {product.marca} || {product.nome}\n
+    💰 Preço Normal: R$ {product.preco_real}
+    💰 Preço Atual: R$ {product.preco_atual}
+    Tamanhos Disponivel: {product.tamanhos_disponiveis}
+
+    🔗Link:\n {product.link}
+                    """
+                await self.bot.send_photo(
+                    chat_id=self.chat_id,
+                    photo=product.imagem,
+                    caption=msg)
+                await asyncio.sleep(10)

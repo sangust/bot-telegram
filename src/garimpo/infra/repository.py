@@ -9,7 +9,30 @@ class LocalProductRepository:
     def __init__(self, db=LocalDataBase()):
         self.session = db.SESSION()
 
-    def discount_products(self):
+    def discount_products(self, marca:str = "default"):
+        if marca != "default":
+            return self.session.query(
+                Product.marca,
+                Product.nome,
+                Product.preco_atual,
+                Product.preco_real,
+                Product.link,
+                Product.imagem,
+                func.group_concat(Product.tamanho, ', ').label('tamanhos_disponiveis')
+            ).filter(
+                Product.preco_atual < Product.preco_real,
+                Product.marca == marca,
+                Product.disponivel == True
+            ).group_by(
+                Product.marca, 
+                Product.nome, 
+                Product.preco_atual, 
+                Product.link
+            ).order_by(
+                Product.preco_atual.asc()
+            ).all()
+
+
         return self.session.query(
             Product.marca,
             Product.nome,
@@ -78,6 +101,6 @@ class CloudProductRepository:
         pandas_gbq.to_gbq(local_products, 
                         self.table_id, 
                         self.project_id,
-                        if_exists="replace",
+                        if_exists="append",
                         credentials=self.cloud_db.credentials)
 

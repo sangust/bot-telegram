@@ -4,8 +4,9 @@ from src.garimpo.infra.repository import CloudProductRepository
 import asyncio
 
 if __name__ == "__main__":
-    extract_1 = extract()
-    extract_1.shopify()
+    extracts = extract()
+    extracts.shopify()
+    extracts.nuvemshop()
 
     gcp = CloudProductRepository()
     gcp.sync_local_to_cloud()
