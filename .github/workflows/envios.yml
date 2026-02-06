@@ -3,8 +3,6 @@ name: National Bot
 on:
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
   schedule:
     - cron: "0 */18 * * *"
 jobs:
@@ -44,6 +42,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/products.db  # Caminho do seu banco
+          git add data/products.db
           git commit -m "update local database CI/CD" || echo "Sem mudanças no banco"
-          git push origin development
+          git push origin HEAD:main

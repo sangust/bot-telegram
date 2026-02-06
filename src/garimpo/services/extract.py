@@ -63,3 +63,6 @@ class extract:
                 print(f"[ERRO COLETA] Marca={marca} | Erro={e}")
         
         self.db.commit() 
+
+    def nuvemshop():
+        ...
