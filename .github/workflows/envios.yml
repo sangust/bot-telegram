@@ -2,9 +2,11 @@ name: National Bot
 
 on:
   push:
-    branches: ["development"]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   schedule:
-    - cron: "0 21 * * *"
+    - cron: "0 */18 * * *"
 jobs:
   run:
     runs-on: ubuntu-latest
