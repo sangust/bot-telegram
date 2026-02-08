@@ -31,3 +31,96 @@ NUVEMSHOP_URLS = {
     "Dest studios":"https://www.deststudios.com.br/",
     "TakeOff":"https://takeoffcollection.com.br/",
 }
+
+VALID_SIZES = VALID_SIZES = [
+    # Padrão textual (BR / internacional)
+    "XXS",
+    "XPP",
+    "PP",
+    "XS",
+    "P",
+    "S",
+    "M",
+    "L",
+    "G",
+    "GG",
+    "XG",
+    "XGG",
+    "EG",
+    "EGG",
+    "EEG",
+    "EXG",
+
+    # Numéricos (roupas / calçados)
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "48",
+    "50",
+    "52",
+    "54",
+
+    # Plus size / progressivos
+    "G1",
+    "G2",
+    "G3",
+    "GG1",
+    "GG2",
+    "GG3",
+    "2XG",
+    "3XG",
+    "4XG",
+    "5XG",
+    "2XL",
+    "3XL",
+    "4XL",
+    "5XL",
+    "XXL",
+    "XXXL",
+
+    # Faixas (mantidas como tamanho)
+    "34-38",
+    "39-44",
+
+    # Cintura / calça
+    "36/26",
+    "38/28",
+    "40/30",
+    "42/32",
+    "44/34",
+    "46/36",
+    "48/38",
+    "50/40",
+    "52/42",
+
+    # Comprimento / medida
+    "80CM",
+    "85CM",
+    "90CM",
+    "95CM",
+    "100CM",
+    "105CM",
+    "110CM",
+    "120CM",
+    "130CM",
+
+    # Skate / numeração especial
+    "8.0",
+    "8.25",
+    "8.5",
+
+    # Único
+    "U",
+    "ÚNICO"
+]

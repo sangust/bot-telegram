@@ -1,11 +1,12 @@
 import httpx
 from datetime import datetime, timezone
-from ..infra.config import SHOPIFY_URLS, NUVEMSHOP_URLS
+from ..infra.config import SHOPIFY_URLS, NUVEMSHOP_URLS, VALID_SIZES
 from ..infra.schemas import ProductSchema
 from ..infra.database import LocalDataBase
 from ..infra.repository import LocalProductRepository
 from bs4 import BeautifulSoup
 import re
+
 
 class extract:
     def __init__(self, db = LocalDataBase, query=LocalProductRepository):
@@ -87,46 +88,33 @@ class extract:
                     
                     while has_more:
                         try:
-                            url = f"{produtos_url}?page={page}"
-                            print(f"[INFO] Acessando página {page}: {url}")
-                            
+                            url = f"{produtos_url}?page={page}"                            
                             response = client.get(url)
                             response.raise_for_status()
                             soup = BeautifulSoup(response.text, 'html.parser')
                             
-                            # Método 1: Buscar por itens de produto na grid
-                            # Nuvemshop geralmente usa classes como "item-product", "product-item"
-                            product_items = soup.select('.item-product, .product-item, [itemtype*="Product"]')
-                            
-                            print(f"[DEBUG] Itens de produto encontrados (método 1): {len(product_items)}")
-                            
-                            # Método 2: Buscar links que vão para /produtos/slug/
+                            product_items = soup.select('.item-product, .product-item, [itemtype*="Product"]')                            
+
                             if not product_items:
                                 all_links = soup.select('a[href*="/produtos/"]')
-                                print(f"[DEBUG] Links com /produtos/ encontrados: {len(all_links)}")
-                                
-                                # Filtra para pegar apenas produtos (não categorias)
                                 product_links = []
                                 seen_slugs = set()
                                 
                                 for link in all_links:
                                     href = link.get('href', '')
-                                    # Formato esperado: /produtos/nome-do-produto/ ou https://loja.com.br/produtos/nome-do-produto/
                                     match = re.search(r'/produtos/([a-z0-9\-]+)/?$', href)
                                     if match:
                                         slug = match.group(1)
                                         if slug not in seen_slugs and slug != '':
                                             seen_slugs.add(slug)
                                             product_links.append((slug, href))
-                                
-                                print(f"[DEBUG] Produtos únicos identificados: {len(product_links)}")
-                                
+                                                                
                                 if not product_links:
                                     print(f"[INFO] Nenhum produto encontrado na página {page}")
                                     has_more = False
                                     break
+
                             else:
-                                # Extrai links dos itens encontrados
                                 product_links = []
                                 for item in product_items:
                                     link = item.select_one('a[href*="/produtos/"]')
@@ -136,10 +124,8 @@ class extract:
                                         if match:
                                             product_links.append((match.group(1), href))
                             
-                            # Processa cada produto
                             for slug, href in product_links:
                                 try:
-                                    # Monta URL completa se necessário
                                     if href.startswith('http'):
                                         product_url = href
                                     else:
@@ -151,15 +137,11 @@ class extract:
                                     prod_response.raise_for_status()
                                     prod_soup = BeautifulSoup(prod_response.text, 'html.parser')
                                     
-                                    # Extrai o nome do produto
                                     nome_element = prod_soup.select_one('h1.product-name, h1[itemprop="name"], .product-title h1, h1')
                                     nome = nome_element.get_text(strip=True) if nome_element else slug.replace('-', ' ').title()
-                                    print(f"[DEBUG] Nome: {nome}")
                                     
-                                    # Extrai preço - busca em vários possíveis locais
                                     preco_atual = None
                                     
-                                    # Tenta vários seletores comuns
                                     price_selectors = [
                                         'span.price-amount',
                                         'span[itemprop="price"]',
@@ -172,14 +154,11 @@ class extract:
                                         preco_element = prod_soup.select_one(selector)
                                         if preco_element:
                                             preco_text = preco_element.get_text(strip=True)
-                                            print(f"[DEBUG] Texto do preço ({selector}): {preco_text}")
                                             
-                                            # Remove tudo exceto números e vírgula
                                             preco_clean = re.sub(r'[^\d,]', '', preco_text)
                                             if preco_clean:
                                                 try:
                                                     preco_atual = float(preco_clean.replace(',', '.'))
-                                                    print(f"[DEBUG] Preço parseado: {preco_atual}")
                                                     break
                                                 except ValueError:
                                                     continue
@@ -199,7 +178,6 @@ class extract:
                                                 compare_at_price = float(compare_clean.replace(',', '.'))
                                                 if compare_at_price > preco_atual:
                                                     preco_real = compare_at_price
-                                                    print(f"[DEBUG] Preço original (com desconto): {preco_real}")
                                             except ValueError:
                                                 pass
                                     
@@ -264,14 +242,10 @@ class extract:
                                     
                                     print(f"[DEBUG] Total de variantes a salvar: {len(variantes)}")
                                     
-                                    # Salva cada variante
                                     for variant in variantes:
                                         try:
-                                            # Gera ID único baseado em marca + slug + tamanho
-                                            variant_hash = hash(f"{marca}-{slug}-{variant['tamanho']}") % (10 ** 10)
                                             
-                                            from ..infra.schemas import ProductSchema
-                                            
+                                            variant_hash = hash(f"{marca}-{slug}-{variant['tamanho']}") % (10 ** 10)                                            
                                             produto = ProductSchema(
                                                 marca=marca,
                                                 nome=nome,
@@ -285,15 +259,12 @@ class extract:
                                                 imagem=imagem
                                             )
                                             
-                                            print(f"[INFO] Salvando variante: {nome} - {variant['tamanho']}")
                                             
                                             try:
                                                 self.db.update(product=produto)
-                                                print(f"[SUCCESS] Produto atualizado no DB")
                                             except Exception as update_error:
                                                 print(f"[DEBUG] Update falhou ({update_error}), tentando add...")
                                                 self.db.add(product=produto)
-                                                print(f"[SUCCESS] Produto adicionado no DB")
                                             
                                             produtos_processados += 1
                                         
@@ -305,10 +276,9 @@ class extract:
                                     import traceback
                                     traceback.print_exc()
                             
-                            # Verifica se há próxima página
                             page += 1
                             next_link = soup.select_one('a.next, a[rel="next"], .pagination-next')
-                            if not next_link or page > 20:  # Limite de segurança
+                            if not next_link or page > 20:  
                                 has_more = False
                         
                         except httpx.HTTPStatusError as e:
