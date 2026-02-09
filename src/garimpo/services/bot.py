@@ -43,12 +43,12 @@ Tamanhos Disponivel: {product.tamanhos_disponiveis}
         
             for product in discount_products:
                 msg = f"""
-    🔥 {product.marca} || {product.nome}\n
-    💰 Preço Normal: R$ {product.preco_real}
-    💰 Preço Atual: R$ {product.preco_atual}
-    Tamanhos Disponivel: {product.tamanhos_disponiveis}
+🔥 {product.marca} || {product.nome}\n
+💰 Preço Normal: R$ {product.preco_real}
+💰 Preço Atual: R$ {product.preco_atual}
 
-    🔗Link:\n {product.link}
+Tamanhos Disponivel: {product.tamanhos_disponiveis}
+🔗Link:\n {product.link}
                     """
                 await self.bot.send_photo(
                     chat_id=self.chat_id,
