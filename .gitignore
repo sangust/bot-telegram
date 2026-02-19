@@ -1,0 +1,31 @@
+config.json
+.env
+__pycache__/
+*.pyc
+config.json
+.env
+__pycache__/
+*.pyc
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.json
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# Secrets
+*.tfvars
+*.json
+# GCP credentials
+credentials.json
+*.json

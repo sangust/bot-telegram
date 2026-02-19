@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "garimpo"
+version = "0.1.0"
+description = ""
+authors = [
+    "santana <sannt11na@sempreceub.com>",
+    "sangust <sannt11na@gmail.com>"
+]
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+httpx = "^0.28.1"
+pandas = "^2.2"
+sqlalchemy = "^2.0.46"
+pydantic = "^2.12.5"
+python-dotenv = "^1.2.1"
+python-telegram-bot = "^22.6"
+selenium = "^4.40.0"
+dotenv = "^0.9.9"
+google = "^3.0.0"
+google-cloud-bigquery = "^3.40.0"
+pandas-gbq = "^0.33.0"
+fastapi = "^0.129.0"
+jinja2 = "^3.1.6"
+uvicorn = "^0.41.0"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
