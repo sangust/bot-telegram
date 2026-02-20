@@ -16,7 +16,7 @@ provider "google"{
 
 resource "google_compute_instance" "afilibot"{
     name = "afilibot"
-    machine_type = "e2-micro"
+    machine_type = "e2-small"
     zone = var.zone
     tags = ["web-server"]
 
