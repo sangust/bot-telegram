@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar Bot | afilibot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .accent-orange { color: #f97316; }
+        .bg-accent-orange { background-color: #f97316; }
+        .glass-dark { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .hero-gradient { background: radial-gradient(circle at top, #1e293b 0%, #020617 100%); }
+        
+        /* Checkbox customizado */
+        .store-checkbox:checked + div {
+            border-color: #f97316;
+            background-color: rgba(249, 115, 22, 0.1);
+        }
+        .store-checkbox:checked + div .check-icon {
+            opacity: 1;
+            scale: 1;
+        }
+
+        /* Estilo de Loading */
+        .btn-loading { pointer-events: none; opacity: 0.8; }
+        .spinner { animation: spin 1s linear infinite; display: none; }
+        .btn-loading .spinner { display: inline-block; }
+        .btn-loading .btn-text { display: none; }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-200 min-h-screen hero-gradient">
+
+    <!-- Navbar Simplificada -->
+    <nav class="fixed w-full z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-slate-800">
+        <div class="max-w-4xl mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition">
+                <div class="bg-accent-orange p-1.5 rounded-lg text-white">
+                    <i data-lucide="rocket" class="w-6 h-6"></i>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tighter text-white">afilibot</span>
+            </a>
+            <a href="/" class="flex items-center gap-2 text-slate-400 hover:text-white transition font-medium text-sm">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+            </a>
+        </div>
+    </nav>
+
+    <!-- Formulário Principal -->
+    <main class="pt-32 pb-24 px-6 max-w-4xl mx-auto">
+        <div class="mb-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-3">Configure seu Robô 🚀</h1>
+            <p class="text-slate-400">Preencha os dados abaixo para iniciar a automação e mineração de ofertas no seu canal.</p>
+        </div>
+
+        <form id="bot-setup-form" class="glass-dark p-6 md:p-10 rounded-3xl shadow-2xl space-y-10">
+            
+            <!-- Sessão 1: Informações Básicas -->
+            <section class="space-y-6">
+                <div class="flex items-center gap-3 border-b border-slate-700/50 pb-4">
+                    <div class="bg-slate-800 p-2 rounded-lg text-orange-500"><i data-lucide="settings-2" class="w-5 h-5"></i></div>
+                    <h2 class="text-xl font-bold text-white">Informações Básicas</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Chat ID -->
+                    <div class="space-y-2">
+                        <label for="chat_id" class="block text-sm font-semibold text-slate-300">
+                            Chat ID do Telegram <span class="text-orange-500">*</span>
+                        </label>
+                        <input type="text" id="chat_id" name="chat_id" required placeholder="Ex: -1001234567890"
+                            class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
+                        <p class="text-[11px] text-slate-500">O ID do canal ou grupo onde o bot enviará as ofertas.</p>
+                    </div>
+
+                    <!-- Link de Afiliado (Opcional) -->
+                    <div class="space-y-2">
+                        <label for="affiliate_link" class="block text-sm font-semibold text-slate-300">
+                            Link de Afiliado Padrão <span class="text-slate-500 font-normal">(Opcional)</span>
+                        </label>
+                        <input type="url" id="affiliate_link" name="affiliate_link" placeholder="https://..."
+                            class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
+                        <p class="text-[11px] text-slate-500">Usado como base para gerar seus links comissionados.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sessão 2: Lojas para Monitorar -->
+            <section class="space-y-6 pt-4">
+                <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-800 p-2 rounded-lg text-orange-500"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div>
+                        <h2 class="text-xl font-bold text-white">Lojas Monitoradas</h2>
+                    </div>
+                    <button type="button" id="select-all-btn" class="text-xs font-bold text-orange-500 hover:text-orange-400 uppercase tracking-wider">
+                        Selecionar Todas
+                    </button>
+                </div>
+                <p class="text-sm text-slate-400">Selecione quais lojas o seu bot deverá monitorar em busca de produtos e cupons.</p>
+
+                <!-- Grupo: Shopify -->
+                <div class="space-y-4 pt-2">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span> Plataforma: Shopify
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="shopify-stores">
+                        <!-- Itens gerados via JS para manter o código limpo, veja o script abaixo -->
+                    </div>
+                </div>
+
+                <!-- Grupo: Nuvemshop -->
+                <div class="space-y-4 pt-6">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span> Plataforma: Nuvemshop
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="nuvemshop-stores">
+                        <!-- Itens gerados via JS para manter o código limpo, veja o script abaixo -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Submit -->
+            <div class="pt-6 border-t border-slate-800">
+                <button type="submit" id="submit-btn" class="w-full bg-orange-600 text-white font-black text-lg py-4 rounded-xl hover:bg-orange-500 transition duration-300 flex items-center justify-center gap-2 shadow-xl shadow-orange-900/20">
+                    <i data-lucide="loader-2" class="w-6 h-6 spinner text-white"></i>
+                    <span class="btn-text">Ativar Robô</span>
+                    <i data-lucide="zap" class="w-5 h-5 btn-text fill-current"></i>
+                </button>
+                <p id="error-msg" class="text-red-500 text-sm mt-3 text-center hidden font-medium">Por favor, selecione ao menos uma loja.</p>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Inicializa ícones
+        lucide.createIcons();
+
+        // Dados das Lojas
+        const SHOPIFY_URLS = {
+            "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
+            "New": "https://newnewnew.com.br/products.json?limit=250",
+            "Piet": "https://piet.com.br/products.json?limit=250",
+            "Pace": "https://pacecompany.com.br/products.json?limit=250",
+            "Carnan": "https://www.carnan.com.br/products.json?limit=250",
+            "1of1": "https://1of1exclusivist.com/products.json?limit=250",
+            "EghoStudios": "https://egho.com.br/products.json?limit=250",
+            "Sufgang": "https://sufgang.com.br/products.json?limit=250",
+            "CienaLab": "https://cienalab.com.br/products.json?limit=250",
+            "Anty": "https://www.anty.com.br/products.json?limit=250",
+            "IceCompany": "https://www.icecompany.com.br/products.json"
+        };
+
+        const NUVEMSHOP_URLS = {
+            "Brunxind":"https://brunxind.com/",
+            "Overstreets":"https://www.overstreets.com.br/",
+            "Basyc":"https://www.basyc.com.br/",
+            "Bussfly":"https://bussfly.com.br/",
+            "Captive Club":"https://captiveclub.com.br/",
+            "Malan":"https://www.malan.com.br/",
+            "ggar":"https://ggar.com.br/",
+            "Places Wo":"https://www.placeswo.com/",
+            "Delafoe":"https://delafoe.com.br/",
+            "SteetApparel":"https://www.streetapparel.com.br/",
+            "Wanted":"https://wantedind.com/",
+            "YungCeo":"https://yungceo.com.br/",
+            "Jet Company": "https://jetcompanybr.com/",
+            "Dest studios":"https://www.deststudios.com.br/",
+            "TakeOff":"https://takeoffcollection.com.br/"
+        };
+
+        // Função para renderizar os cards de loja
+        function renderStores(containerId, storeData, platform) {
+            const container = document.getElementById(containerId);
+            
+            Object.entries(storeData).forEach(([name, url], index) => {
+                const id = `${platform}-${index}`;
+                const html = `
+                    <label class="relative cursor-pointer group">
+                        <input type="checkbox" name="stores" value='{"name":"${name}", "url":"${url}", "platform":"${platform}"}' class="store-checkbox sr-only">
+                        <div class="h-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl transition duration-200 group-hover:border-slate-500 flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-300">${name}</span>
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 opacity-0 scale-50 transition-all duration-300 check-icon"></i>
+                        </div>
+                    </label>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            lucide.createIcons(); // Recarrega os ícones nos novos elementos
+        }
+
+        // Renderiza as listas
+        renderStores('shopify-stores', SHOPIFY_URLS, 'shopify');
+        renderStores('nuvemshop-stores', NUVEMSHOP_URLS, 'nuvemshop');
+
+        // Botão Selecionar Todos
+        const selectAllBtn = document.getElementById('select-all-btn');
+        selectAllBtn.addEventListener('click', () => {
+            const checkboxes = document.querySelectorAll('.store-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            selectAllBtn.innerText = allChecked ? "Selecionar Todas" : "Desmarcar Todas";
+        });
+
+        const form = document.getElementById('bot-setup-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorMsg = document.getElementById('error-msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+
+            // Pegar os checkboxes selecionados
+            const selectedCheckboxes = document.querySelectorAll('.store-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Converter values das checkboxes para Objetos
+            const selectedStores = {};
+
+            selectedCheckboxes.forEach(cb => {
+                const store = JSON.parse(cb.value);
+                selectedStores[store.name] = store.url;
+            });
+
+            // Construir o payload
+            const payload = {
+                chat_id: document.getElementById('chat_id').value,
+                affiliate_link: document.getElementById('affiliate_link').value || null,
+                stores: selectedStores
+            };
+
+            // Loading state
+            submitBtn.classList.add('btn-loading');
+
+            try {
+                // Simulação da Requisição ao Back-end
+                console.log("Enviando Payload para API:", payload);
+                
+                const response = await fetch('/api/setup-bot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+
+                if (!response.ok) throw new Error('Falha no servidor');
+                alert("Robô criado com sucesso!");
+                const result = await response.json();
+                window.location.href = "/dashboard";
+                // Sucesso
+                
+                //window.location.href = '/dashboard'; // Mude para a rota desejada
+
+            } catch (error) {
+                console.error("Erro:", error);
+                
+                // Feedback visual de erro
+                const originalText = document.querySelector('.btn-text').innerText;
+                document.querySelector('.btn-text').innerText = 'Erro! Tente Novamente';
+                submitBtn.classList.replace('bg-orange-600', 'bg-red-600');
+                
+                setTimeout(() => {
+                    document.querySelector('.btn-text').innerText = originalText;
+                    submitBtn.classList.replace('bg-red-600', 'bg-orange-600');
+                    submitBtn.classList.remove('btn-loading');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

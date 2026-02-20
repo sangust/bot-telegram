@@ -16,8 +16,8 @@ class PromoBot():
         self.bot = Bot(token=BOT_TOKEN, request=self.REQUEST)
 
     
-    async def send_promotions(self):
-        discount_products = LocalProductRepository().discount_products()
+    async def send_promotions(self, stores):
+        discount_products = LocalProductRepository().discount_products(stores=stores)
         if not discount_products:
             return
     

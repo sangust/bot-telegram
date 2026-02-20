@@ -9,7 +9,29 @@ class LocalProductRepository:
     def __init__(self, db=LocalDataBase()):
         self.session = db.SESSION()
 
-    def discount_products(self):
+    def discount_products(self, stores):
+        if stores:
+            return self.session.query(
+            Product.marca,
+            Product.nome,
+            Product.preco_atual,
+            Product.preco_real,
+            Product.link,
+            Product.imagem,
+            func.group_concat(Product.tamanho, ', ').label('tamanhos_disponiveis')
+        ).filter(
+            Product.marca.in_(stores),
+            Product.preco_atual < Product.preco_real,
+            Product.disponivel == True
+        ).group_by(
+            Product.marca, 
+            Product.nome, 
+            Product.preco_atual, 
+            Product.link
+        ).order_by(
+            Product.preco_atual.asc()
+        ).all()
+        
         return self.session.query(
             Product.marca,
             Product.nome,

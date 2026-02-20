@@ -3,15 +3,9 @@ from app.src.services.bot import PromoBot
 from app.src.infrabackend.repository import CloudProductRepository
 import asyncio
 
-if __name__ == "__main__":
+async def afilibot(chat_id, stores, link_afiliado=None):
     extracts = extract()
-    extracts.shopify()
-    extracts.nuvemshop()
-
-    gcp = CloudProductRepository()
-    gcp.normalize_to_cloud()
-    gcp.sync_local_to_cloud()
+    extracts.shopify(stores)
     
-    telegram_bot = PromoBot()
-    asyncio.run(telegram_bot.send_promotions())
-    
+    telegram_bot = PromoBot(CHAT_ID=chat_id)
+    await telegram_bot.send_promotions(stores)

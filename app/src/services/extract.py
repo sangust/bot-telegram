@@ -12,7 +12,7 @@ class extract:
     def __init__(self, db = LocalDataBase, query=LocalProductRepository):
         self.db = query(db=db())
     
-    def shopify(self, SHOPIFY_URLS = SHOPIFY_URLS):
+    def shopify(self, SHOPIFY_URLS):
         for marca, url in SHOPIFY_URLS.items():
             try:
                 with httpx.Client(timeout=10) as client:

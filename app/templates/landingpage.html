@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>afilibot | Automação para Afiliados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .accent-orange { color: #f97316; }
+        .bg-accent-orange { background-color: #f97316; }
+        .glass-dark { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .hero-gradient { background: radial-gradient(circle at 0% 0%, #1e293b 0%, #020617 100%); }
+        .text-gradient { background: linear-gradient(to right, #fb923c, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-200">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-accent-orange p-1.5 rounded-lg text-white">
+                    <i data-lucide="rocket" class="w-6 h-6"></i>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tighter text-white">afilibot</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-10 font-semibold text-slate-400">
+                <a href="#como-funciona" class="hover:text-orange-500 transition">Como Funciona</a>
+                <a href="#integracoes" class="hover:text-orange-500 transition">Lojas Aceitas</a>
+                <a href="#precos" class="hover:text-orange-500 transition">Planos</a>
+                <a href="/createbot" class="bg-orange-600 text-white px-6 py-2.5 rounded-full hover:bg-orange-500 transition shadow-lg shadow-orange-900/20">Criar Bot</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-44 pb-32 hero-gradient overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 px-4 py-1.5 rounded-full text-slate-300 text-xs font-bold uppercase tracking-widest mb-8">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Compatível com +50 E-commerces
+                </div>
+                <h1 class="text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-8">
+                    Venda no automático com qualquer <span class="text-gradient">link de afiliado.</span>
+                </h1>
+                <p class="text-xl text-slate-400 mb-10 leading-relaxed max-w-xl">
+                    O <strong>afilibot</strong> gerencia seus grupos de ofertas 24h por dia. Funciona com Shopee, Amazon, Mercado Livre e marcas exclusivas como <strong>Take Off</strong>, Baw e Nike.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-5">
+                    <a href="#precos" class="bg-orange-600 text-white px-12 py-5 rounded-2xl font-bold text-lg hover:bg-orange-500 transition flex items-center justify-center gap-3 shadow-2xl shadow-orange-600/20">
+                        Começar Agora <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </a>
+                </div>
+                <!-- Supported Stores Icons -->
+                <div class="mt-10 pt-8 border-t border-slate-800">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Plataformas Suportadas</p>
+                    <div class="flex gap-6 opacity-50 grayscale hover:grayscale-0 transition duration-500">
+                        <!-- Simple text rep for logos to keep code clean -->
+                        <span class="font-bold text-xl text-white">Shopee</span>
+                        <span class="font-bold text-xl text-white">Amazon</span>
+                        <span class="font-bold text-xl text-white">Mercado Livre</span>
+                        <span class="font-bold text-xl text-white">Magalu</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telegram Mockup (Visual Proof) -->
+            <div class="relative">
+                <div class="absolute -inset-10 bg-orange-600/10 blur-[100px] rounded-full"></div>
+                
+                <!-- Label indicating this is just an example -->
+                <div class="absolute -top-6 right-0 bg-slate-800 text-xs text-slate-400 px-3 py-1 rounded-full border border-slate-700 z-20">
+                    Exemplo de uso: Nicho Streetwear
+                </div>
+
+                <div class="bg-slate-800 rounded-[3rem] p-3 shadow-2xl border border-slate-700 relative z-10">
+                    <div class="bg-[#17212b] rounded-[2.5rem] h-[580px] overflow-hidden flex flex-col shadow-inner">
+                        <!-- Telegram Header -->
+                        <div class="bg-[#242f3d] px-5 py-4 flex items-center justify-between border-b border-black/20">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-full bg-black border border-slate-700 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                                    <i data-lucide="rocket" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm">promo TakeOff 🚀</h4>
+                                    <p class="text-slate-400 text-xs font-medium">15.420 membros</p>
+                                </div>
+                            </div>
+                            <i data-lucide="more-vertical" class="text-slate-400 w-5 h-5"></i>
+                        </div>
+                        
+                        <!-- Chat Area -->
+                        <div class="p-4 space-y-6 overflow-y-auto bg-[#0e1621]">
+                            
+                            <!-- Date divider -->
+                            <div class="flex justify-center my-2">
+                                <span class="bg-[#000000]/40 text-slate-400 text-[10px] font-bold px-3 py-1 rounded-full">Hoje</span>
+                            </div>
+
+                            <!-- Message 1: Take Off Product Real -->
+                            <div class="bg-[#182533] rounded-2xl p-2 shadow-lg border border-slate-700/50 max-w-[90%] mx-auto">
+                                <div class="bg-slate-800 rounded-xl h-48 w-full mb-3 flex items-center justify-center overflow-hidden relative group">
+                                    <i data-lucide="shirt" class="text-slate-600 w-16 h-16"></i>
+                                    <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">TKF-2025</div>
+                                </div>
+                                <div class="px-2 pb-2">
+                                    <h5 class="font-bold text-slate-100 text-sm mb-1 leading-tight">Camiseta Take Off Chaos Offwhite Tee</h5>
+                                    <p class="text-slate-400 text-xs mb-2 line-clamp-2">Modelagem boxy oversized, malha heavyweight. Ideal para compor kit streetwear.</p>
+                                    <p class="text-orange-500 font-black text-lg mb-3">R$ 169,90 <span class="text-slate-600 font-normal text-xs ml-2">em até 6x</span></p>
+                                    <div class="bg-orange-600 text-white text-center py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider cursor-pointer hover:bg-orange-500 transition">
+                                        Garanta a sua (Link Seguro)
+                                    </div>
+                                    <div class="flex justify-between items-center mt-2 px-1">
+                                        <span class="text-[10px] text-slate-500">Postado via Afilibot</span>
+                                        <span class="text-[10px] text-slate-500">10:42</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Message 2: Another Take Off Product -->
+                            <div class="bg-[#182533] rounded-2xl p-2 shadow-lg border border-slate-700/50 max-w-[90%] mx-auto opacity-90">
+                                <div class="bg-slate-800 rounded-xl h-32 w-full mb-3 flex items-center justify-center overflow-hidden">
+                                     <i data-lucide="layers" class="w-10 h-10 text-slate-600"></i>
+                                </div>
+                                <div class="px-2">
+                                    <h5 class="font-bold text-slate-100 text-xs mb-1">Heatmap Workshirt - Coleção Nova</h5>
+                                    <p class="text-orange-500 font-black text-sm">R$ 369,90</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section id="como-funciona" class="py-24 bg-[#020617]">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-white">Como escalar suas vendas?</h2>
+                <p class="text-slate-400 mt-2">O processo é simples e funciona para qualquer nicho (Moda, Eletrônicos, Casa).</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass-dark p-8 rounded-2xl border border-slate-800">
+                    <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-orange-500 mb-6">
+                        <i data-lucide="link" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">1. Cadastre seus Links</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Insira seus IDs de afiliado da Shopee, Amazon, Take Off, ou qualquer outra loja parceira no painel.</p>
+                </div>
+                <div class="glass-dark p-8 rounded-2xl border border-slate-800">
+                    <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-orange-500 mb-6">
+                        <i data-lucide="search" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">2. Curadoria Automática</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">O bot monitora os sites oficiais em busca de promoções reais e estoque disponível.</p>
+                </div>
+                <div class="glass-dark p-8 rounded-2xl border border-slate-800">
+                    <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-orange-500 mb-6">
+                        <i data-lucide="send" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">3. Disparo Inteligente</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">As ofertas são enviadas para o seu canal com foto, preço e o <strong>seu</strong> link de comissão já gerado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="precos" class="py-32 bg-[#020617] relative border-t border-slate-900">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-20">
+                <h2 class="text-4xl font-black text-white mb-4">Planos Acessíveis</h2>
+                <p class="text-slate-400">Comece a faturar hoje mesmo.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Monthly -->
+                <div class="glass-dark p-12 rounded-[3rem] border border-slate-800 hover:border-orange-500/50 transition duration-500 group">
+                    <span class="text-slate-400 font-bold text-xs uppercase tracking-widest">Plano Mensal</span>
+                    <div class="mt-6 mb-10">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-sm font-bold text-slate-500 italic">R$</span>
+                            <span class="text-6xl font-black text-white tracking-tighter">14,99</span>
+                        </div>
+                        <p class="text-slate-500 mt-2">Cancele quando quiser.</p>
+                    </div>
+                    <ul class="space-y-4 mb-10">
+                        <li class="flex items-center gap-3 text-slate-300 font-medium">
+                            <i data-lucide="check" class="text-orange-500 w-5 h-5"></i> 1 Canal de Ofertas
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-300 font-medium">
+                            <i data-lucide="check" class="text-orange-500 w-5 h-5"></i> Até 3 Lojas Integradas
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-300 font-medium">
+                            <i data-lucide="check" class="text-orange-500 w-5 h-5"></i> Postagens Ilimitadas
+                        </li>
+                    </ul>
+                    <button class="w-full py-5 rounded-2xl bg-white text-black font-black hover:bg-orange-500 hover:text-white transition duration-300">
+                        Assinar Mensal
+                    </button>
+                </div>
+
+                <!-- Annual -->
+                <div class="bg-orange-600 p-12 rounded-[3rem] shadow-2xl shadow-orange-900/30 relative overflow-hidden group">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-orange-400 rounded-full blur-3xl opacity-50 group-hover:scale-150 transition duration-700"></div>
+                    
+                    <span class="bg-black/20 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Recomendado</span>
+                    <div class="mt-6 mb-10">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-sm font-bold text-orange-200 italic">R$</span>
+                            <span class="text-6xl font-black text-white tracking-tighter">149,99</span>
+                        </div>
+                        <p class="text-orange-100 mt-2 font-medium italic">Equivalente a R$ 12,50/mês.</p>
+                    </div>
+                    <ul class="space-y-4 mb-10">
+                        <li class="flex items-center gap-3 text-white font-bold">
+                            <i data-lucide="zap" class="text-yellow-300 w-5 h-5 fill-current"></i> Canais Ilimitados
+                        </li>
+                        <li class="flex items-center gap-3 text-white font-medium">
+                            <i data-lucide="check" class="text-white w-5 h-5"></i> Todas as Lojas (Shopee, TKF, etc)
+                        </li>
+                        <li class="flex items-center gap-3 text-white font-medium">
+                            <i data-lucide="check" class="text-white w-5 h-5"></i> Mineração de Cupons
+                        </li>
+                        <li class="flex items-center gap-3 text-white font-medium">
+                            <i data-lucide="check" class="text-white w-5 h-5"></i> Suporte Prioritário
+                        </li>
+                    </ul>
+                    <button class="w-full py-5 rounded-2xl bg-black text-white font-black hover:bg-slate-900 transition duration-300 shadow-xl">
+                        Assinar Anual 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#020617] border-t border-slate-800 py-20">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <div class="flex items-center justify-center gap-2 mb-8">
+                <div class="bg-orange-600 p-1 rounded text-white">
+                    <i data-lucide="rocket" class="w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-extrabold tracking-tighter text-white">afilibot</span>
+            </div>
+            <p class="text-slate-500 text-sm mb-10 max-w-md mx-auto">
+                Plataforma de automação para afiliados profissionais. Não possuímos vínculo direto com as marcas citadas no exemplo.
+            </p>
+            <div class="flex justify-center gap-10 text-xs font-bold text-slate-600 uppercase tracking-[0.2em]">
+                <a href="#" class="hover:text-orange-500 transition">Privacidade</a>
+                <a href="#" class="hover:text-orange-500 transition">Termos</a>
+                <a href="#" class="hover:text-orange-500 transition">Contato</a>
+            </div>
+            <p class="mt-12 text-slate-700 text-[10px] font-bold uppercase tracking-widest">© 2024 afilibot automation systems</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle | afilibot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .accent-orange { color: #f97316; }
+        .glass-dark { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .hero-gradient { background: radial-gradient(circle at top, #1e293b 0%, #020617 100%); }
+        
+        /* Toggle Switch Customizado */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #f97316;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #f97316;
+        }
+
+        /* Estilo de Loading para botões */
+        .btn-loading { pointer-events: none; opacity: 0.8; }
+        .spinner { animation: spin 1s linear infinite; display: none; }
+        .btn-loading .spinner { display: inline-block; }
+        .btn-loading .btn-text { display: none; }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-200 min-h-screen hero-gradient">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition">
+                <div class="bg-orange-600 p-1.5 rounded-lg text-white">
+                    <i data-lucide="rocket" class="w-6 h-6"></i>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tighter text-white">afilibot</span>
+            </a>
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex items-center gap-2 text-sm font-medium text-slate-400 bg-slate-800/50 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Sistema Operacional
+                </div>
+                <a href="#" class="text-slate-400 hover:text-white transition font-medium text-sm flex items-center gap-2">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Sair
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Painel Principal -->
+    <main class="pt-32 pb-24 px-6 max-w-7xl mx-auto">
+        
+        <!-- Header do Dashboard -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            <div>
+                <h1 class="text-3xl font-extrabold text-white mb-2 flex items-center gap-3">
+                    Painel de Controle
+                </h1>
+                <p class="text-slate-400 text-sm">Gerencie a automação do canal <strong class="text-white">@promo_streetwear</strong></p>
+            </div>
+
+            <!-- Botão de Ligar/Desligar Bot -->
+            <div class="bg-[#0f172a] border border-slate-700 p-4 rounded-2xl flex items-center gap-4 shadow-lg">
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status do Robô</p>
+                    <p id="bot-status-text" class="text-green-500 font-bold flex items-center gap-1.5">
+                        <i data-lucide="activity" class="w-4 h-4"></i> Rodando
+                    </p>
+                </div>
+                <div class="w-px h-10 bg-slate-700 mx-2"></div>
+                <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="bot-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-1 left-1 transition-all duration-300" checked/>
+                    <label for="bot-toggle" class="toggle-label block overflow-hidden h-8 rounded-full bg-slate-600 cursor-pointer transition-colors duration-300"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-dark p-6 rounded-2xl flex items-center gap-5 relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-orange-600/10 rounded-full blur-2xl group-hover:bg-orange-600/20 transition duration-500"></div>
+                <div class="bg-orange-500/10 p-4 rounded-xl text-orange-500 border border-orange-500/20">
+                    <i data-lucide="send" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Ofertas Enviadas</p>
+                    <p class="text-3xl font-black text-white">0</p>
+                </div>
+            </div>
+            
+            <div class="glass-dark p-6 rounded-2xl flex items-center gap-5 relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-600/10 rounded-full blur-2xl group-hover:bg-blue-600/20 transition duration-500"></div>
+                <div class="bg-blue-500/10 p-4 rounded-xl text-blue-500 border border-blue-500/20">
+                    <i data-lucide="mouse-pointer-click" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Cliques nos Links</p>
+                    <p class="text-3xl font-black text-white">0</p>
+                </div>
+            </div>
+
+            <div class="glass-dark p-6 rounded-2xl flex items-center gap-5 relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-600/10 rounded-full blur-2xl group-hover:bg-green-600/20 transition duration-500"></div>
+                <div class="bg-green-500/10 p-4 rounded-xl text-green-500 border border-green-500/20">
+                    <i data-lucide="store" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Lojas Monitoradas</p>
+                    <p class="text-3xl font-black text-white">0<span class="text-sm font-medium text-slate-500">/ 26</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 space-y-8">
+                
+                <div class="glass-dark p-6 rounded-3xl">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-6">
+                        <i data-lucide="settings" class="w-5 h-5 text-orange-500"></i> Configurações
+                    </h3>
+                    
+                    <form id="update-settings-form" class="space-y-5">
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Chat ID (Telegram)</label>
+                            <input type="text" value="-100987654321" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Link de Afiliado</label>
+                            <input type="url" value="https://afiliado.com/ref?id=meu_codigo" class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
+                        </div>
+
+                        <button type="submit" id="save-settings-btn" class="w-full bg-slate-800 text-white font-bold text-sm py-3 rounded-lg hover:bg-slate-700 border border-slate-600 transition duration-300 flex items-center justify-center gap-2">
+                            <i data-lucide="loader-2" class="w-4 h-4 spinner text-white"></i>
+                            <span class="btn-text">Salvar Alterações</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lojas Ativas Resumo -->
+                <div class="glass-dark p-6 rounded-3xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="list-checks" class="w-5 h-5 text-orange-500"></i> Lojas Ativas
+                        </h3>
+                        <a href="create-bot.html" class="text-xs text-orange-500 hover:text-orange-400 font-bold">Editar</a>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+                            <span class="text-sm font-medium text-slate-300">TakeOff</span>
+                            <span class="text-[10px] bg-green-500/20 text-green-500 px-2 py-1 rounded-full font-bold">Monitorando</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+                            <span class="text-sm font-medium text-slate-300">Pace</span>
+                            <span class="text-[10px] bg-green-500/20 text-green-500 px-2 py-1 rounded-full font-bold">Monitorando</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+                            <span class="text-sm font-medium text-slate-300">Sufgang</span>
+                            <span class="text-[10px] bg-green-500/20 text-green-500 px-2 py-1 rounded-full font-bold">Monitorando</span>
+                        </div>
+                        <div class="text-center pt-2">
+                            <span class="text-xs text-slate-500">+ 9 outras lojas</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="glass-dark p-6 rounded-3xl h-full flex flex-col">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-orange-500"></i> Últimos Envios
+                        </h3>
+                        <button class="text-xs text-slate-400 hover:text-white flex items-center gap-1 bg-slate-800 px-3 py-1.5 rounded-lg transition">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Atualizar
+                        </button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4 max-h-[500px]">
+                        
+                        <div class="bg-[#0f172a] border border-slate-800 p-4 rounded-xl flex items-start gap-4 hover:border-slate-600 transition">
+                            <div class="bg-orange-600/20 p-2 rounded-lg text-orange-500 mt-1">
+                                <i data-lucide="shirt" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="text-sm font-bold text-slate-200">Take Off - Chaos Offwhite Tee</h4>
+                                    <span class="text-[10px] text-slate-500 font-medium">Agora mesmo</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mb-2">Cupom aplicado com sucesso. Link gerado: <a href="#" class="text-orange-500 hover:underline">https://afiliado...</a></p>
+                                <div class="flex gap-2">
+                                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">R$ 169,90</span>
+                                    <span class="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded border border-green-500/20">Enviado no Telegram</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Log Item 2 -->
+                        <div class="bg-[#0f172a] border border-slate-800 p-4 rounded-xl flex items-start gap-4 hover:border-slate-600 transition">
+                            <div class="bg-blue-600/20 p-2 rounded-lg text-blue-500 mt-1">
+                                <i data-lucide="layers" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="text-sm font-bold text-slate-200">Pace - Heatmap Workshirt</h4>
+                                    <span class="text-[10px] text-slate-500 font-medium">Há 12 min</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mb-2">Preço atualizado detectado. Produto em estoque.</p>
+                                <div class="flex gap-2">
+                                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">R$ 369,90</span>
+                                    <span class="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded border border-green-500/20">Enviado no Telegram</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Log Item 3 -->
+                        <div class="bg-[#0f172a] border border-slate-800 p-4 rounded-xl flex items-start gap-4 hover:border-slate-600 transition">
+                            <div class="bg-red-600/20 p-2 rounded-lg text-red-500 mt-1">
+                                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="text-sm font-bold text-slate-200">Sufgang - Moletom Boxy</h4>
+                                    <span class="text-[10px] text-slate-500 font-medium">Há 45 min</span>
+                                </div>
+                                <p class="text-xs text-slate-400">Produto detectado, mas fora de estoque. Ignorado pelo bot.</p>
+                            </div>
+                        </div>
+
+                        <!-- Log Item 4 -->
+                        <div class="bg-[#0f172a] border border-slate-800 p-4 rounded-xl flex items-start gap-4 hover:border-slate-600 transition">
+                            <div class="bg-orange-600/20 p-2 rounded-lg text-orange-500 mt-1">
+                                <i data-lucide="glasses" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="text-sm font-bold text-slate-200">Carnan - Óculos de Sol Safari</h4>
+                                    <span class="text-[10px] text-slate-500 font-medium">Há 2 horas</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mb-2">Oferta minerada com sucesso.</p>
+                                <div class="flex gap-2">
+                                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">R$ 199,90</span>
+                                    <span class="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded border border-green-500/20">Enviado no Telegram</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Inicializa ícones
+        lucide.createIcons();
+
+        // Lógica do Toggle Switch (Ligar/Pausar Bot)
+        const botToggle = document.getElementById('bot-toggle');
+        const botStatusText = document.getElementById('bot-status-text');
+
+        botToggle.addEventListener('change', async (e) => {
+            const isRunning = e.target.checked;
+            
+            // UI Update provisório
+            botStatusText.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 spinner inline"></i> Atualizando...';
+            lucide.createIcons();
+
+            try {
+                // Simula requisição para o back-end
+                /* await fetch('/api/toggle-bot', {
+                    method: 'POST',
+                    body: JSON.stringify({ status: isRunning ? 'active' : 'paused' })
+                }); 
+                */
+                await new Promise(r => setTimeout(r, 600)); // fake delay
+
+                if (isRunning) {
+                    botStatusText.innerHTML = '<i data-lucide="activity" class="w-4 h-4"></i> Rodando';
+                    botStatusText.className = 'text-green-500 font-bold flex items-center gap-1.5';
+                } else {
+                    botStatusText.innerHTML = '<i data-lucide="pause-circle" class="w-4 h-4"></i> Pausado';
+                    botStatusText.className = 'text-slate-500 font-bold flex items-center gap-1.5';
+                }
+                lucide.createIcons();
+
+            } catch (error) {
+                // Se der erro, reverte o botão
+                e.target.checked = !isRunning;
+                alert("Erro ao alterar o status do bot.");
+            }
+        });
+
+        // Lógica para Salvar Configurações
+        const settingsForm = document.getElementById('update-settings-form');
+        const saveBtn = document.getElementById('save-settings-btn');
+        const btnText = saveBtn.querySelector('.btn-text');
+
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Adiciona classe de loading
+            saveBtn.classList.add('btn-loading');
+
+            try {
+                // Simula salvamento no back-end
+                await new Promise(r => setTimeout(r, 1000));
+                
+                // Sucesso visual
+                const originalText = btnText.innerText;
+                btnText.innerText = 'Salvo com sucesso!';
+                saveBtn.classList.replace('bg-slate-800', 'bg-green-600');
+                saveBtn.classList.replace('border-slate-600', 'border-green-500');
+                saveBtn.classList.remove('btn-loading');
+
+                setTimeout(() => {
+                    btnText.innerText = originalText;
+                    saveBtn.classList.replace('bg-green-600', 'bg-slate-800');
+                    saveBtn.classList.replace('border-green-500', 'border-slate-600');
+                }, 2500);
+
+            } catch (error) {
+                console.error(error);
+                saveBtn.classList.remove('btn-loading');
+                alert("Erro ao salvar configurações.");
+            }
+        });
+    </script>
+</body>
+</html>
