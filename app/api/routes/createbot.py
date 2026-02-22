@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from app.main import afilibot
+from app.botrun import afilibot
 
 templates = Jinja2Templates("app/templates")
 createbot = APIRouter(tags=["createbot"])

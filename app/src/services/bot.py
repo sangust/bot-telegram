@@ -1,6 +1,6 @@
 from telegram import Bot
 from telegram.request import HTTPXRequest
-from ..infrabackend.repository import LocalProductRepository
+from ..infrabackend.repository import LocalRepository
 import asyncio
 import os
 
@@ -17,21 +17,21 @@ class PromoBot():
 
     
     async def send_promotions(self, stores):
-        discount_products = LocalProductRepository().discount_products(stores=stores)
+        discount_products = LocalRepository().discount_products(stores=stores)
         if not discount_products:
             return
     
         for product in discount_products:
             msg = f"""
-🔥 {product.marca} || {product.nome}\n
-💰 Preço Normal: R$ {product.preco_real}
-💰 Preço Atual: R$ {product.preco_atual}
+🔥 {product.brand} || {product.name}\n
+💰 Preço Normal: R$ {product.full_price}
+💰 Preço Atual: R$ {product.discount_price}
 
-Tamanhos Disponivel: {product.tamanhos_disponiveis}
+Tamanhos Disponivel: {product.size}
 🔗Link:\n {product.link}
                 """
             await self.bot.send_photo(
                 chat_id=self.chat_id,
-                photo=product.imagem,
+                photo=product.image,
                 caption=msg)
             await asyncio.sleep(10)

@@ -1,4 +1,17 @@
-DATABASE_URL = "sqlite:///app/data/products.db"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+CONNECT_ARGS = {}
+
+CREDENTIALS = os.getenv("CREDENTIALS")
+PROJECT_ID = os.getenv("PROJECT_ID")
+TABLE = os.getenv("TABLE")
+
+
+
 SHOPIFY_URLS = {
     "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
     "New": "https://newnewnew.com.br/products.json?limit=250",
