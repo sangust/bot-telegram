@@ -1,12 +1,13 @@
 from .database import LocalDatabase, CloudDatabase
-from ..domain.models import Product
+from ..domain.models import Product, Bot
 from .schemas import ProductSchema
 from sqlalchemy import func
 import pandas as pd
 import pandas_gbq
 
 class LocalRepository:
-    def __init__(self, db=LocalDatabase()):
+    def __init__(self, db=None):
+        db = db or LocalDatabase()
         self.session = db.SESSION()
                     
     def discount_products(self, stores):
@@ -18,7 +19,7 @@ class LocalRepository:
             Product.full_price,
             Product.link,
             Product.image,
-            func.string_agg(Product.size, ', ').label('available_sizes')
+            func.string_agg(Product.size, ', ').label('size')
         ).filter(
             Product.brand.in_(stores),
             Product.discount_price < Product.full_price,
@@ -27,17 +28,22 @@ class LocalRepository:
             Product.brand, 
             Product.name, 
             Product.full_price, 
-            Product.link
+            Product.link,
+            Product.discount_price,
+            Product.image
         ).order_by(
             Product.full_price.asc()
         ).all()
         
     
 
-    def add(self, product:ProductSchema):
-        new_product = Product(**product.model_dump())
-        self.session.add(new_product)
-
+    def add(self, *models):
+        try:
+            for m in models:
+                self.session.add(m)
+        except Exception as e:
+            print(e)
+            raise e
 
     def update(self, product:ProductSchema):
         try:
@@ -56,18 +62,53 @@ class LocalRepository:
             
         except Exception as e:
            raise e   
+        
+    def update_bot(self, bot: Bot):
+        try:
+            existing = self.session.query(Bot).filter(
+                Bot.user_id == bot.user_id
+            ).first()
+
+            if not existing:
+                raise ValueError("Bot not found")
+
+            if bot.bot_token is not None:
+                existing.bot_token = bot.bot_token
+
+            if bot.chat_id is not None:
+                existing.chat_id = bot.chat_id
+
+            if bot.stores is not None:
+                existing.stores = bot.stores
+
+            if bot.affiliate_link is not None:
+                existing.affiliate_link = bot.affiliate_link
+
+            if bot.today_sent is not None:
+                existing.today_sent = bot.today_sent
+
+            if bot.all_sent is not None:
+                existing.all_sent = bot.all_sent
+
+            if bot.status is not None:
+                existing.status = bot.status
+
+        except Exception as e:
+            raise e
+
 
     def commit(self):
         try:
             self.session.commit()
         except Exception as e:
             self.session.rollback()
+            print("error",e)
             raise e
         finally:
             self.session.close()
 
 
-class CloudProductRepository:
+""" class CloudProductRepository:
     def __init__(self, cloud_db = CloudDatabase(project_id="terraform-487103"), local_db = LocalDatabase()):
         self.cloud_db = cloud_db
         self.table_id = cloud_db.table      
@@ -91,5 +132,5 @@ class CloudProductRepository:
                         self.table_id, 
                         self.project_id,
                         if_exists="replace",
-                        credentials=self.cloud_db.credentials)
+                        credentials=self.cloud_db.credentials) """
 

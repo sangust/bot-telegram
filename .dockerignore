@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+**/__pycache__
+*.py[cod]
+*.pyo
+.mypy_cache
+.ruff_cache
+.pytest_cache
+
+# Ambiente virtual
+.venv
+venv
+env
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Infraestrutura / Terraform
+infra/
+
+# Credenciais sensíveis
+config.json
+infra/credentials.json
+
+*.db
+*.sqlite
+*.sqlite3
+
+alembic/
+app/data/alembic/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Docs / README
+README.md
+hints.txt
+
+# OS
+.DS_Store
+Thumbs.db

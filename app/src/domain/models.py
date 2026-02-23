@@ -48,7 +48,7 @@ class User(BASE):
     email      = Column(String(200), unique=True, nullable=False)
     name       = Column(String(200))
     subplain      = Column(Enum(SubPlains), default=SubPlains.free, nullable=False)
-    created_at  = Column(Date, default=Date)
+    created_at  = Column(Date, default=date.today)
 
     subscription = relationship("Subscription", back_populates="user", uselist=False)
     bot = relationship("Bot", back_populates="user", uselist=False)
@@ -62,13 +62,13 @@ class Bot(BASE):
     chat_id         = Column(String(100), nullable=False) 
     stores           = Column(String)  
     affiliate_link   = Column(String(300), nullable=True)
-    sent_time   = Column(Integer, default=9) 
+    today_sent   = Column(Integer,default=0, nullable=False)
+    all_sent = Column(Integer, default=0, nullable=False) 
     status          = Column(Enum(StatusBot), default=StatusBot.active)
     created_at       = Column(Date)
-    updated_at   = Column(Date, default=Date, onupdate=date.today)
+    updated_at   = Column(Date, default=date.today, onupdate=date.today)
 
     user = relationship("User", back_populates="bot")
-
 
 
 class Subscription(BASE):
@@ -76,9 +76,10 @@ class Subscription(BASE):
 
     id                   = Column(Integer, primary_key=True)
     user_id              = Column(String, ForeignKey("users.google_id"), unique=True, nullable=False)
-    abacatepay_id        = Column(String(200), unique=True)         # ID da cobrança/assinatura lá
+    abacatepay_id        = Column(String(200), unique=True)         # ID da cobrança/assinatura
     abacatepay_customer  = Column(String(200))                      # customer ID no Abacatepay
 
+    plan = Column(String(50), nullable=True)  # "monthly" | "annual"
     status               = Column(Enum(StatusSubPlains), default=StatusSubPlains.pending)
     value                = Column(Numeric(10, 2))                   
     start               = Column(Date)

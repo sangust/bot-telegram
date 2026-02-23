@@ -3,149 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurar Bot | afilibot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Novo Bot | afilibot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
-        .accent-orange { color: #f97316; }
-        .bg-accent-orange { background-color: #f97316; }
-        .glass-dark { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .hero-gradient { background: radial-gradient(circle at top, #1e293b 0%, #020617 100%); }
-        
-        /* Checkbox customizado */
-        .store-checkbox:checked + div {
-            border-color: #f97316;
-            background-color: rgba(249, 115, 22, 0.1);
-        }
-        .store-checkbox:checked + div .check-icon {
-            opacity: 1;
-            scale: 1;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:      #020617;
+            --surface: #0f172a;
+            --border:  rgba(51, 65, 85, 0.6);
+            --orange:  #f97316;
+            --text:    #f1f5f9;
+            --muted:   #64748b;
+            --subtle:  #1e293b;
         }
 
-        /* Estilo de Loading */
-        .btn-loading { pointer-events: none; opacity: 0.8; }
-        .spinner { animation: spin 1s linear infinite; display: none; }
-        .btn-loading .spinner { display: inline-block; }
-        .btn-loading .btn-text { display: none; }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100svh;
         }
+
+        /* ── Fundo ── */
+        .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.13; animation: drift 16s ease-in-out infinite alternate; }
+        .orb-1 { width: 420px; height: 420px; background: var(--orange); top: -100px; left: -80px; animation-duration: 18s; }
+        .orb-2 { width: 280px; height: 280px; background: #7c3ded; bottom: 5%; right: -60px; animation-duration: 14s; animation-delay: -6s; }
+        @keyframes drift { from{transform:translate(0,0) scale(1);} to{transform:translate(25px,18px) scale(1.07);} }
+        .grid-overlay { position:fixed; inset:0; z-index:0; background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px); background-size:48px 48px; }
+
+        /* ── Nav ── */
+        nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(2,6,23,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+        .nav-inner { max-width:760px; margin:0 auto; padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:.6rem; text-decoration:none; }
+        .logo-icon { width:32px; height:32px; background:var(--orange); border-radius:8px; display:grid; place-items:center; box-shadow:0 0 16px rgba(249,115,22,.35); }
+        .logo-icon svg { width:16px; height:16px; color:#fff; }
+        .logo-text { font-size:1.25rem; font-weight:800; letter-spacing:-.04em; color:#fff; }
+        .back-link { display:flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; color:var(--muted); text-decoration:none; transition:color .15s; }
+        .back-link:hover { color:var(--text); }
+        .back-link svg { width:14px; height:14px; }
+
+        /* ── Layout ── */
+        .page { position:relative; z-index:10; max-width:760px; margin:0 auto; padding:100px 2rem 5rem; }
+
+        .page-label { display:inline-flex; align-items:center; gap:.5rem; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2); padding:.3rem .85rem; border-radius:99px; font-size:.68rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:.08em; margin-bottom:1.25rem; }
+        .page-label svg { width:12px; height:12px; }
+        .page-title { font-size:2rem; font-weight:800; letter-spacing:-.03em; color:#fff; margin-bottom:.5rem; }
+        .page-sub { font-size:.9rem; color:var(--muted); line-height:1.6; margin-bottom:2.5rem; }
+
+        /* ── Seções de form ── */
+        .form-section {
+            background:rgba(15,23,42,.75);
+            backdrop-filter:blur(20px);
+            border:1px solid var(--border);
+            border-radius:20px;
+            padding:2rem;
+            margin-bottom:1.25rem;
+        }
+        .section-head { display:flex; align-items:center; gap:.75rem; padding-bottom:1.25rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(51,65,85,.4); }
+        .section-icon { width:36px; height:36px; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2); border-radius:10px; display:grid; place-items:center; flex-shrink:0; }
+        .section-icon svg { width:16px; height:16px; color:var(--orange); }
+        .section-title { font-size:.95rem; font-weight:700; color:#fff; }
+        .section-sub { font-size:.78rem; color:var(--muted); margin-top:.15rem; }
+
+        /* ── Grid de inputs ── */
+        .input-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+        @media(max-width:540px){ .input-grid{grid-template-columns:1fr;} }
+
+        .field-wrap { display:flex; flex-direction:column; gap:.5rem; }
+        .field-label { font-size:.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; }
+        .field-label span { color:var(--orange); }
+        .field-label em { color:#334155; font-style:normal; font-weight:500; text-transform:none; letter-spacing:0; }
+        .input-wrap { position:relative; }
+        .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); pointer-events:none; }
+        .input-icon svg { width:15px; height:15px; color:#334155; }
+        input[type=text] {
+            width:100%; background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.6);
+            border-radius:12px; padding:.8rem 1rem .8rem 2.75rem;
+            font-family:inherit; font-size:.875rem; color:var(--text);
+            transition:border-color .15s, box-shadow .15s;
+        }
+        input[type=text]::placeholder { color:#334155; }
+        input[type=text]:focus { outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(249,115,22,.12); }
+        .field-hint { font-size:.7rem; color:#334155; line-height:1.5; }
+
+        /* ── Lojas ── */
+        .stores-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
+        .stores-count { font-size:.78rem; color:var(--muted); }
+        .stores-count strong { color:var(--orange); }
+        .btn-select-all { background:none; border:none; font-family:inherit; font-size:.75rem; font-weight:700; color:var(--orange); cursor:pointer; transition:color .15s; }
+        .btn-select-all:hover { color:#fb923c; }
+
+        .stores-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.6rem; }
+
+        .store-cb { display:none; }
+        .store-tile {
+            display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+            padding:.7rem 1rem; border-radius:12px;
+            background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.5);
+            font-size:.82rem; font-weight:600; color:#94a3b8;
+            cursor:pointer; user-select:none;
+            transition:border-color .15s, background .15s, color .15s;
+        }
+        .store-tile:hover { border-color:rgba(51,65,85,.9); color:var(--text); }
+        .store-cb:checked + .store-tile { border-color:var(--orange); background:rgba(249,115,22,.08); color:var(--text); }
+        .check-dot {
+            width:8px; height:8px; border-radius:50%;
+            border:2px solid #334155;
+            flex-shrink:0;
+            transition:background .15s, border-color .15s;
+        }
+        .store-cb:checked + .store-tile .check-dot { background:var(--orange); border-color:var(--orange); }
+
+        /* ── Erro ── */
+        .error-box { display:none; align-items:center; gap:.6rem; padding:.85rem 1rem; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.25); border-radius:12px; font-size:.82rem; color:#f87171; margin-bottom:1rem; }
+        .error-box.visible { display:flex; }
+        .error-box svg { width:15px; height:15px; flex-shrink:0; }
+
+        /* ── Submit ── */
+        .btn-submit {
+            width:100%; padding:1rem; display:flex; align-items:center; justify-content:center; gap:.6rem;
+            background:var(--orange); color:#fff;
+            font-family:inherit; font-size:.95rem; font-weight:800;
+            border:none; border-radius:14px; cursor:pointer;
+            transition:background .15s, transform .15s, box-shadow .15s;
+            box-shadow:0 8px 28px rgba(249,115,22,.3);
+        }
+        .btn-submit:hover { background:#ea6d0e; transform:translateY(-1px); box-shadow:0 12px 32px rgba(249,115,22,.4); }
+        .btn-submit:disabled { opacity:.6; pointer-events:none; }
+        .btn-submit svg { width:17px; height:17px; }
+        .spinner-svg { animation:spin 0.8s linear infinite; display:none; }
+        .btn-submit.loading .spinner-svg { display:block; }
+        .btn-submit.loading .btn-icon { display:none; }
+        .btn-submit.loading .btn-txt { opacity:.7; }
+        @keyframes spin { to{transform:rotate(360deg);} }
     </style>
 </head>
-<body class="bg-[#020617] text-slate-200 min-h-screen hero-gradient">
+<body>
 
-    <!-- Navbar Simplificada -->
-    <nav class="fixed w-full z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-slate-800">
-        <div class="max-w-4xl mx-auto px-6 h-20 flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition">
-                <div class="bg-accent-orange p-1.5 rounded-lg text-white">
-                    <i data-lucide="rocket" class="w-6 h-6"></i>
+    <div class="bg-layer">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+    <div class="grid-overlay"></div>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="/dashboard" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
                 </div>
-                <span class="text-2xl font-extrabold tracking-tighter text-white">afilibot</span>
+                <span class="logo-text">afilibot</span>
             </a>
-            <a href="/" class="flex items-center gap-2 text-slate-400 hover:text-white transition font-medium text-sm">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+            <a href="/dashboard" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Dashboard
             </a>
         </div>
     </nav>
 
-    <!-- Formulário Principal -->
-    <main class="pt-32 pb-24 px-6 max-w-4xl mx-auto">
-        <div class="mb-10">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-3">Configure seu Robô 🚀</h1>
-            <p class="text-slate-400">Preencha os dados abaixo para iniciar a automação e mineração de ofertas no seu canal.</p>
+    <div class="page">
+        <div class="page-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+            Novo bot
         </div>
+        <h1 class="page-title">Configure seu robô</h1>
+        <p class="page-sub">Preencha os dados abaixo para ativar a automação no seu canal do Telegram.</p>
 
-        <form id="bot-setup-form" class="glass-dark p-6 md:p-10 rounded-3xl shadow-2xl space-y-10">
-            
-            <!-- Sessão 1: Informações Básicas -->
-            <section class="space-y-6">
-                <div class="flex items-center gap-3 border-b border-slate-700/50 pb-4">
-                    <div class="bg-slate-800 p-2 rounded-lg text-orange-500"><i data-lucide="settings-2" class="w-5 h-5"></i></div>
-                    <h2 class="text-xl font-bold text-white">Informações Básicas</h2>
-                </div>
+        <form id="bot-form">
 
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- Chat ID -->
-                    <div class="space-y-2">
-                        <label for="chat_id" class="block text-sm font-semibold text-slate-300">
-                            Chat ID do Telegram <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="text" id="chat_id" name="chat_id" required placeholder="Ex: -1001234567890"
-                            class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
-                        <p class="text-[11px] text-slate-500">O ID do canal ou grupo onde o bot enviará as ofertas.</p>
+            <!-- Telegram -->
+            <div class="form-section">
+                <div class="section-head">
+                    <div class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
-
-                    <!-- Link de Afiliado (Opcional) -->
-                    <div class="space-y-2">
-                        <label for="affiliate_link" class="block text-sm font-semibold text-slate-300">
-                            Link de Afiliado Padrão <span class="text-slate-500 font-normal">(Opcional)</span>
-                        </label>
-                        <input type="url" id="affiliate_link" name="affiliate_link" placeholder="https://..."
-                            class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3.5 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
-                        <p class="text-[11px] text-slate-500">Usado como base para gerar seus links comissionados.</p>
+                    <div>
+                        <div class="section-title">Telegram</div>
+                        <div class="section-sub">Onde o bot vai enviar as ofertas</div>
                     </div>
                 </div>
-            </section>
-
-            <!-- Sessão 2: Lojas para Monitorar -->
-            <section class="space-y-6 pt-4">
-                <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-slate-800 p-2 rounded-lg text-orange-500"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div>
-                        <h2 class="text-xl font-bold text-white">Lojas Monitoradas</h2>
+                <div class="input-grid">
+                    <div class="field-wrap">
+                        <label class="field-label" for="chat_id">Chat ID <span>*</span></label>
+                        <div class="input-wrap">
+                            <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg></span>
+                            <input type="text" id="chat_id" placeholder="-1001234567890" required>
+                        </div>
+                        <span class="field-hint">ID do canal ou grupo onde o bot vai postar.</span>
                     </div>
-                    <button type="button" id="select-all-btn" class="text-xs font-bold text-orange-500 hover:text-orange-400 uppercase tracking-wider">
-                        Selecionar Todas
-                    </button>
-                </div>
-                <p class="text-sm text-slate-400">Selecione quais lojas o seu bot deverá monitorar em busca de produtos e cupons.</p>
-
-                <!-- Grupo: Shopify -->
-                <div class="space-y-4 pt-2">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500"></span> Plataforma: Shopify
-                    </h3>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="shopify-stores">
-                        <!-- Itens gerados via JS para manter o código limpo, veja o script abaixo -->
+                    <div class="field-wrap">
+                        <label class="field-label" for="affiliate_link">Link de Afiliado <em>(opcional)</em></label>
+                        <div class="input-wrap">
+                            <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+                            <input type="text" id="affiliate_link" placeholder="seu_codigo_afiliado">
+                        </div>
+                        <span class="field-hint">Código ou URL do seu programa de afiliados.</span>
                     </div>
                 </div>
-
-                <!-- Grupo: Nuvemshop -->
-                <div class="space-y-4 pt-6">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span> Plataforma: Nuvemshop
-                    </h3>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="nuvemshop-stores">
-                        <!-- Itens gerados via JS para manter o código limpo, veja o script abaixo -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- Submit -->
-            <div class="pt-6 border-t border-slate-800">
-                <button type="submit" id="submit-btn" class="w-full bg-orange-600 text-white font-black text-lg py-4 rounded-xl hover:bg-orange-500 transition duration-300 flex items-center justify-center gap-2 shadow-xl shadow-orange-900/20">
-                    <i data-lucide="loader-2" class="w-6 h-6 spinner text-white"></i>
-                    <span class="btn-text">Ativar Robô</span>
-                    <i data-lucide="zap" class="w-5 h-5 btn-text fill-current"></i>
-                </button>
-                <p id="error-msg" class="text-red-500 text-sm mt-3 text-center hidden font-medium">Por favor, selecione ao menos uma loja.</p>
             </div>
+
+            <!-- Lojas -->
+            <div class="form-section">
+                <div class="section-head">
+                    <div class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Lojas para monitorar</div>
+                        <div class="section-sub">Selecione quais lojas o bot deve acompanhar</div>
+                    </div>
+                </div>
+
+                <div class="stores-top">
+                    <span class="stores-count" id="count-label"><strong>0</strong> lojas selecionadas</span>
+                    <button type="button" class="btn-select-all" id="select-all">Selecionar todas</button>
+                </div>
+
+                <div class="stores-grid" id="store-grid"></div>
+            </div>
+
+            <!-- Erro + submit -->
+            <div class="error-box" id="error-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                <span id="error-text"></span>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submit-btn">
+                <svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span class="btn-txt">Ativar robô</span>
+            </button>
         </form>
-    </main>
+    </div>
 
     <script>
-        // Inicializa ícones
-        lucide.createIcons();
-
-        // Dados das Lojas
-        const SHOPIFY_URLS = {
+        const STORES = {
             "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
             "New": "https://newnewnew.com.br/products.json?limit=250",
             "Piet": "https://piet.com.br/products.json?limit=250",
@@ -156,127 +250,99 @@
             "Sufgang": "https://sufgang.com.br/products.json?limit=250",
             "CienaLab": "https://cienalab.com.br/products.json?limit=250",
             "Anty": "https://www.anty.com.br/products.json?limit=250",
-            "IceCompany": "https://www.icecompany.com.br/products.json"
-        };
-
-        const NUVEMSHOP_URLS = {
-            "Brunxind":"https://brunxind.com/",
-            "Overstreets":"https://www.overstreets.com.br/",
-            "Basyc":"https://www.basyc.com.br/",
-            "Bussfly":"https://bussfly.com.br/",
-            "Captive Club":"https://captiveclub.com.br/",
-            "Malan":"https://www.malan.com.br/",
-            "ggar":"https://ggar.com.br/",
-            "Places Wo":"https://www.placeswo.com/",
-            "Delafoe":"https://delafoe.com.br/",
-            "SteetApparel":"https://www.streetapparel.com.br/",
-            "Wanted":"https://wantedind.com/",
-            "YungCeo":"https://yungceo.com.br/",
+            "IceCompany": "https://www.icecompany.com.br/products.json",
+            "Brunxind": "https://brunxind.com/",
+            "Overstreets": "https://www.overstreets.com.br/",
+            "Basyc": "https://www.basyc.com.br/",
+            "Bussfly": "https://bussfly.com.br/",
+            "Captive Club": "https://captiveclub.com.br/",
+            "Malan": "https://www.malan.com.br/",
+            "ggar": "https://ggar.com.br/",
+            "Places Wo": "https://www.placeswo.com/",
+            "Delafoe": "https://delafoe.com.br/",
+            "SteetApparel": "https://www.streetapparel.com.br/",
+            "Wanted": "https://wantedind.com/",
+            "YungCeo": "https://yungceo.com.br/",
             "Jet Company": "https://jetcompanybr.com/",
-            "Dest studios":"https://www.deststudios.com.br/",
-            "TakeOff":"https://takeoffcollection.com.br/"
+            "Dest studios": "https://www.deststudios.com.br/",
+            "TakeOff": "https://takeoffcollection.com.br/"
         };
 
-        // Função para renderizar os cards de loja
-        function renderStores(containerId, storeData, platform) {
-            const container = document.getElementById(containerId);
-            
-            Object.entries(storeData).forEach(([name, url], index) => {
-                const id = `${platform}-${index}`;
-                const html = `
-                    <label class="relative cursor-pointer group">
-                        <input type="checkbox" name="stores" value='{"name":"${name}", "url":"${url}", "platform":"${platform}"}' class="store-checkbox sr-only">
-                        <div class="h-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl transition duration-200 group-hover:border-slate-500 flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-300">${name}</span>
-                            <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 opacity-0 scale-50 transition-all duration-300 check-icon"></i>
-                        </div>
-                    </label>
-                `;
-                container.insertAdjacentHTML('beforeend', html);
-            });
-            lucide.createIcons(); // Recarrega os ícones nos novos elementos
+        const grid = document.getElementById('store-grid');
+        const countLabel = document.getElementById('count-label');
+
+        function updateCount() {
+            const n = document.querySelectorAll('.store-cb:checked').length;
+            countLabel.innerHTML = '<strong>' + n + '</strong> loja' + (n !== 1 ? 's' : '') + ' selecionada' + (n !== 1 ? 's' : '');
         }
 
-        // Renderiza as listas
-        renderStores('shopify-stores', SHOPIFY_URLS, 'shopify');
-        renderStores('nuvemshop-stores', NUVEMSHOP_URLS, 'nuvemshop');
-
-        // Botão Selecionar Todos
-        const selectAllBtn = document.getElementById('select-all-btn');
-        selectAllBtn.addEventListener('click', () => {
-            const checkboxes = document.querySelectorAll('.store-checkbox');
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            
-            checkboxes.forEach(cb => cb.checked = !allChecked);
-            selectAllBtn.innerText = allChecked ? "Selecionar Todas" : "Desmarcar Todas";
+        Object.entries(STORES).forEach(([name, url]) => {
+            const id = 'store-' + name.replace(/\s/g, '-').toLowerCase();
+            const val = JSON.stringify({name, url}).replace(/'/g, "&#39;");
+            grid.insertAdjacentHTML('beforeend',
+                '<label>' +
+                '<input type="checkbox" class="store-cb" id="' + id + '" value=\'' + val + '\'>' +
+                '<span class="store-tile">' + name + '<span class="check-dot"></span></span>' +
+                '</label>'
+            );
         });
 
-        const form = document.getElementById('bot-setup-form');
-        const submitBtn = document.getElementById('submit-btn');
-        const errorMsg = document.getElementById('error-msg');
+        document.querySelectorAll('.store-cb').forEach(cb => cb.addEventListener('change', updateCount));
 
-        form.addEventListener('submit', async (e) => {
+        const selectAllBtn = document.getElementById('select-all');
+        selectAllBtn.addEventListener('click', () => {
+            const all = document.querySelectorAll('.store-cb');
+            const allChecked = [...all].every(c => c.checked);
+            all.forEach(c => c.checked = !allChecked);
+            selectAllBtn.textContent = allChecked ? 'Selecionar todas' : 'Desmarcar todas';
+            updateCount();
+        });
+
+        document.getElementById('bot-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            errorMsg.classList.add('hidden');
+            const errorBox = document.getElementById('error-box');
+            const errorText = document.getElementById('error-text');
+            const btn = document.getElementById('submit-btn');
 
-            // Pegar os checkboxes selecionados
-            const selectedCheckboxes = document.querySelectorAll('.store-checkbox:checked');
-            
-            if (selectedCheckboxes.length === 0) {
-                errorMsg.classList.remove('hidden');
+            errorBox.classList.remove('visible');
+
+            const chatId = document.getElementById('chat_id').value.trim();
+            if (!chatId) {
+                errorText.textContent = 'Informe o Chat ID do canal ou grupo.';
+                errorBox.classList.add('visible');
                 return;
             }
 
-            // Converter values das checkboxes para Objetos
-            const selectedStores = {};
+            const selected = document.querySelectorAll('.store-cb:checked');
+            if (!selected.length) {
+                errorText.textContent = 'Selecione ao menos uma loja para monitorar.';
+                errorBox.classList.add('visible');
+                return;
+            }
 
-            selectedCheckboxes.forEach(cb => {
-                const store = JSON.parse(cb.value);
-                selectedStores[store.name] = store.url;
-            });
+            const stores = {};
+            selected.forEach(cb => { const s = JSON.parse(cb.value); stores[s.name] = s.url; });
 
-            // Construir o payload
-            const payload = {
-                chat_id: document.getElementById('chat_id').value,
-                affiliate_link: document.getElementById('affiliate_link').value || null,
-                stores: selectedStores
-            };
-
-            // Loading state
-            submitBtn.classList.add('btn-loading');
+            btn.classList.add('loading');
+            btn.disabled = true;
 
             try {
-                // Simulação da Requisição ao Back-end
-                console.log("Enviando Payload para API:", payload);
-                
-                const response = await fetch('/api/setup-bot', {
+                const res = await fetch('/api/setup-bot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        stores: stores,
+                        affiliate_link: document.getElementById('affiliate_link').value.trim() || null
+                    })
                 });
-
-
-                if (!response.ok) throw new Error('Falha no servidor');
-                alert("Robô criado com sucesso!");
-                const result = await response.json();
-                window.location.href = "/dashboard";
-                // Sucesso
-                
-                //window.location.href = '/dashboard'; // Mude para a rota desejada
-
-            } catch (error) {
-                console.error("Erro:", error);
-                
-                // Feedback visual de erro
-                const originalText = document.querySelector('.btn-text').innerText;
-                document.querySelector('.btn-text').innerText = 'Erro! Tente Novamente';
-                submitBtn.classList.replace('bg-orange-600', 'bg-red-600');
-                
-                setTimeout(() => {
-                    document.querySelector('.btn-text').innerText = originalText;
-                    submitBtn.classList.replace('bg-red-600', 'bg-orange-600');
-                    submitBtn.classList.remove('btn-loading');
-                }, 3000);
+                if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'Erro no servidor.'); }
+                window.location.href = '/dashboard';
+            } catch (err) {
+                errorText.textContent = err.message;
+                errorBox.classList.add('visible');
+                btn.classList.remove('loading');
+                btn.disabled = false;
             }
         });
     </script>

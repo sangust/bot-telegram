@@ -3,6 +3,7 @@ from .routes.landingpage import landingpage as front_router
 from .routes.createbot import createbot
 from .routes.dashboard import dashboard
 from .routes.auth import auth
+from .routes.subscription import subscription
 from starlette.middleware.sessions import SessionMiddleware
 import os
 
@@ -12,3 +13,4 @@ app.include_router(front_router)
 app.include_router(createbot)
 app.include_router(dashboard)
 app.include_router(auth)
+app.include_router(subscription)

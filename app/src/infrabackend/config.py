@@ -9,9 +9,11 @@ CONNECT_ARGS = {}
 CREDENTIALS = os.getenv("CREDENTIALS")
 PROJECT_ID = os.getenv("PROJECT_ID")
 TABLE = os.getenv("TABLE")
-
-
-
+BOT_TOKENS = [os.getenv("BOT_TOKEN_1"), os.getenv("BOT_TOKEN_2"), os.getenv("BOT_TOKEN_3")]
+BASE_URL = "https://afilibot.shop" #prod
+ABACATEPAY_API_KEY = os.getenv("ABACATEPAY_API_KEY")
+ABACATEPAY_API_URL = os.getenv("ABACATEPAY_API_URL")
+ABACATEPAY_WEBHOOK_SECRET = os.getenv("ABACATEPAY_WEBHOOK_SECRET")
 SHOPIFY_URLS = {
     "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
     "New": "https://newnewnew.com.br/products.json?limit=250",

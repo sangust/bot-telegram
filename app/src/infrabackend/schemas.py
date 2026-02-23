@@ -23,12 +23,13 @@ class UserSchema(BaseModel):
 
 
 class BotSchema(BaseModel):
-    user_id: int
+    user_id: str
     bot_token: str
     chat_id: str
     stores: Optional[str]
     affiliate_link: Optional[str]
-    sent_time: Optional[int] = 9
+    today_sent: int
+    all_sent: int
     status: Optional[str]
     created_at: Optional[date]
     updated_at: Optional[date]
