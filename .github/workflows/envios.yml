@@ -33,7 +33,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # ── 5. Terraform Init ──────────────────────────────────────────────────
-      - name: Terraform Init
+      - name: Terraform plan
         working-directory: infra
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
