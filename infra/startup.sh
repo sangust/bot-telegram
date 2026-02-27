@@ -1,13 +1,15 @@
 #!/bin/bash
 set -e
 
-# ── Instala Docker ─────────────────────────────────────────────────────────────
+# ── Atualiza sistema ───────────────────────────────────────────────────────────
 apt-get update -y
+apt-get install -y nginx certbot python3-certbot-nginx
+
+# ── Instala Docker ─────────────────────────────────────────────────────────────
 curl -fsSL https://get.docker.com | sh
 systemctl start docker
 systemctl enable docker
 
-# ── Aguarda Docker inicializar ─────────────────────────────────────────────────
 sleep 10
 
 # ── Sobe o Postgres ────────────────────────────────────────────────────────────
@@ -21,7 +23,6 @@ docker run -d \
   -p 5432:5432 \
   postgres:16-alpine
 
-# Aguarda o banco ficar pronto
 sleep 20
 
 # ── Cria o .env ────────────────────────────────────────────────────────────────
@@ -52,11 +53,48 @@ docker run --rm \
   ${dockerhub_username}/afilibot:latest \
   alembic upgrade head
 
-# ── Sobe o app ────────────────────────────────────────────────────────────────
+# ── Sobe o app na porta 8000 (Nginx faz proxy para cá) ────────────────────────
 docker run -d \
   --name afilibot \
   --restart always \
   --network host \
   --env-file /opt/afilibot/.env \
-  -p 80:8000 \
   ${dockerhub_username}/afilibot:latest
+
+# ── Configura Nginx como proxy reverso ────────────────────────────────────────
+cat > /etc/nginx/sites-available/afilibot << 'NGINXEOF'
+server {
+    listen 80;
+    server_name afilibot.shop www.afilibot.shop;
+
+    location / {
+        proxy_pass         http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+}
+NGINXEOF
+
+ln -sf /etc/nginx/sites-available/afilibot /etc/nginx/sites-enabled/afilibot
+rm -f /etc/nginx/sites-enabled/default
+
+nginx -t
+systemctl restart nginx
+
+# ── Certbot — gera certificado SSL ────────────────────────────────────────────
+# Aguarda DNS propagar antes de pedir o certificado
+sleep 30
+
+certbot --nginx \
+  --non-interactive \
+  --agree-tos \
+  --email admin@afilibot.shop \
+  -d afilibot.shop \
+  -d www.afilibot.shop
+
+# Renova automaticamente (já instalado pelo certbot, mas força o timer)
+systemctl enable certbot.timer
+systemctl start certbot.timer
