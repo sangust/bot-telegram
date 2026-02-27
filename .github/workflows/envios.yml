@@ -31,7 +31,9 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+      
+      - name: Resource Ja Existe
+        run: terraform import azurerm_resource_group.afilibot /subscriptions/61413908-253a-4268-b3c3-67097f4effa1/resourceGroups/afilibot
       # ── 5. Terraform Init ──────────────────────────────────────────────────
       - name: Terraform plan
         working-directory: infra
