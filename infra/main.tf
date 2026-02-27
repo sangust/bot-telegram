@@ -8,7 +8,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "afilibot"
-    storage_account_name = "afilbottfstate"
+    storage_account_name = "afilibottfstate"
     container_name       = "tfstate"
     key                  = "prod.terraform.tfstate"
   }
