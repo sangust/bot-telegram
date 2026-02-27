@@ -7,8 +7,8 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "afilibot-tfstate-rg"
-    storage_account_name = "afilbottfstate"
+    resource_group_name  = "afilibot"
+    storage_account_name = "afilibottfstate"
     container_name       = "tfstate"
     key                  = "prod.terraform.tfstate"
   }
@@ -19,7 +19,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "afilibot" {
-  name     = "afilibot-rg"
+  name     = "afilibot"
   location = var.location
 
   tags = {
