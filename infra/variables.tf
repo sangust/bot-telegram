@@ -1,7 +1,7 @@
 variable "location" {
   description = "Região do Azure onde os recursos serão criados"
   type        = string
-  default     = "Brazil South"
+  default     = "eastus"
 }
 
 variable "ssh_public_key" {
