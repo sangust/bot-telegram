@@ -1,92 +1,194 @@
 from sqlalchemy import (
     Column, Integer, String, BigInteger, ForeignKey,
-    Boolean, Date, Numeric, UniqueConstraint, Enum)
-from sqlalchemy.orm import relationship
+    Boolean, Numeric, UniqueConstraint, Enum, Index, DateTime)
+from sqlalchemy.orm import relationship, declarative_base
 import enum
-from datetime import date
-from sqlalchemy.orm import declarative_base
+from datetime import datetime, timezone
 
 BASE = declarative_base()
 
+
+#precisa disso, se não python pega o momento de importacao do arquivo python -m src.infraback.models e não no momento do update
+def _now():
+    return datetime.now(timezone.utc)
+
+
+#Classificar objetos para utilizar dentro dos schemas
+
 class SubPlains(str, enum.Enum):
-    free  = "free"    # sem bot, só visualiza
-    basic = "basic"   # 1 bot, 1 chat
+    free     = "free"
+    freemium = "freemium"
+    premium  = "premium"
 
 
 class StatusSubPlains(str, enum.Enum):
-    active    = "active"
+    pending  = "pending"
+    active   = "active"
     canceled = "canceled"
     expired  = "expired"
-    pending  = "pending"   # aguardando pagamento
+
+
+class PlanType(str, enum.Enum):
+    monthly = "monthly"
+    annual  = "annual"
 
 
 class StatusBot(str, enum.Enum):
-    active   = "active"
+    active = "active"
     paused = "paused"
+
+
+class PaymentMethod(str, enum.Enum):
+    pix  = "PIX"
+    card = "CARD"
+
+
+class Platform(str, enum.Enum):
+    shopify   = "shopify"
+    nuvemshop = "nuvemshop"
+
+
+class Store(BASE):
+    """
+    Catálogo de lojas disponíveis.
+    A mesma loja (ex: Sufgang) pode estar em vários bots de vários usuários.
+    Para adicionar uma nova loja basta inserir uma linha aqui, sem alterar código.
+    """
+    __tablename__ = "stores"
+
+    brand         = Column(String, primary_key=True)
+    url        = Column(String(500), nullable=False)
+    platform   = Column(Enum(Platform), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+    bot_stores = relationship("BotStore", back_populates="store")
+    products   = relationship("Product",  back_populates="store")
+
+
+# BotStore — tabela de junção Bot <-> Store 
+# Relacionamento 1 bot -> várias lojas (e 1 loja -> vários bots).
+class BotStore(BASE):
+    __tablename__ = "bot_stores"
+
+    user_id_bot   = Column(String, ForeignKey("bots.user_id", ondelete="CASCADE"), primary_key=True)
+    brand = Column(String, ForeignKey("stores.brand", ondelete="CASCADE"), primary_key=True)
+
+    bot   = relationship("Bot",   back_populates="stores")
+    store = relationship("Store", back_populates="bot_stores")
 
 
 class Product(BASE):
     __tablename__ = "products"
-    __table_args__ = (UniqueConstraint("brand", "clothing_id", name="unique_id_clothing_per_brand"),)
+    __table_args__ = (
+        UniqueConstraint("brand", "clothing_id", name="uq_clothing_per_store"),
+        Index("ix_products_store_available_price", "brand", "available", "discount_price"),)
 
-    id = Column(Integer, primary_key=True)
-    brand = Column(String(100), nullable=False)
-    name = Column(String(200))
-    size = Column(String(50))
+    id             = Column(Integer, primary_key=True)
+    brand          = Column(String, ForeignKey("stores.brand"), nullable=False, index=True)
+    name           = Column(String(200))
+    size           = Column(String(100))
     discount_price = Column(Numeric(10, 2), nullable=False)
-    full_price = Column(Numeric(10,2), nullable=False)
-    image = Column(String)
-    available = Column(Boolean, nullable=False)
-    link = Column(String)
-    clothing_id = Column(BigInteger, nullable=False)
-    sent_at = Column(Date)
+    full_price     = Column(Numeric(10, 2), nullable=False)
+    image          = Column(String)
+    available      = Column(Boolean, nullable=False)
+    link           = Column(String)
+    clothing_id    = Column(BigInteger, nullable=False)
+    updated_at     = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+    #loja que o produto pertence
+    store = relationship("Store", back_populates="products")
+
+
+
 
 class User(BASE):
     __tablename__ = "users"
 
-    google_id  = Column(String(100), primary_key=True, unique=True, nullable=False)  # sub do token Google
-    email      = Column(String(200), unique=True, nullable=False)
-    name       = Column(String(200))
-    subplain      = Column(Enum(SubPlains), default=SubPlains.free, nullable=False)
-    created_at  = Column(Date, default=date.today)
+    google_id        = Column(String(100), primary_key=True, nullable=False)
+    email            = Column(String(200), unique=True, nullable=False)
+    name             = Column(String(200))
+    subplain         = Column(Enum(SubPlains), default=SubPlains.free, nullable=False)
+    trial_started_at = Column(DateTime(timezone=True), nullable=True, default=_now)
+    created_at       = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at       = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
+    #Um user tem que ter os dados da subscription
     subscription = relationship("Subscription", back_populates="user", uselist=False)
-    bot = relationship("Bot", back_populates="user", uselist=False)
+    #Um user tem que ter um bot
+    bot          = relationship("Bot",          back_populates="user", uselist=False)
+
+
 
 class Bot(BASE):
     __tablename__ = "bots"
 
     id              = Column(Integer, primary_key=True)
-    user_id         = Column(String, ForeignKey("users.google_id"), unique=True, nullable=False)  
+    user_id         = Column(String, ForeignKey("users.google_id"), unique=True, nullable=False, index=True)
     bot_token       = Column(String(300), nullable=False)
-    chat_id         = Column(String(100), nullable=False) 
-    stores           = Column(String)  
-    affiliate_link   = Column(String(300), nullable=True)
-    today_sent   = Column(Integer,default=0, nullable=False)
-    all_sent = Column(Integer, default=0, nullable=False) 
-    status          = Column(Enum(StatusBot), default=StatusBot.active)
-    created_at       = Column(Date)
-    updated_at   = Column(Date, default=date.today, onupdate=date.today)
+    chat_id         = Column(String(100), nullable=False)
+    affiliate_link  = Column(String(300), nullable=True)
+    today_sent      = Column(Integer, default=0, nullable=False)
+    all_sent        = Column(Integer, default=0, nullable=False)
+    last_reset_date = Column(DateTime(timezone=True), nullable=True)
+    status          = Column(Enum(StatusBot), default=StatusBot.active, nullable=False)
+    created_at      = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at      = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
-    user = relationship("User", back_populates="bot")
+    user       = relationship("User",     back_populates="bot")
+    stores = relationship("BotStore", back_populates="bot", cascade="all, delete-orphan")
 
+
+# ── Subscription ──────────────────────────────────────────────────────────────
 
 class Subscription(BASE):
     __tablename__ = "subscriptions"
 
-    id                   = Column(Integer, primary_key=True)
-    user_id              = Column(String, ForeignKey("users.google_id"), unique=True, nullable=False)
-    abacatepay_id        = Column(String(200), unique=True)         # ID da cobrança/assinatura
-    abacatepay_customer  = Column(String(200))                      # customer ID no Abacatepay
-
-    plan = Column(String(50), nullable=True)  # "monthly" | "annual"
-    status               = Column(Enum(StatusSubPlains), default=StatusSubPlains.pending)
-    value                = Column(Numeric(10, 2))                   
-    start               = Column(Date)
-    next_payment   = Column(Date)
-    canceled_at         = Column(Date, nullable=True)
-
-    created_at            = Column(Date, default=date.today)
-    updated_at        = Column(Date, default=date.today, onupdate=date.today)
+    id             = Column(Integer, primary_key=True)
+    user_id        = Column(String, ForeignKey("users.google_id"), unique=True, nullable=False, index=True)
+    billing_id     = Column(String(200), unique=True, nullable=False)
+    customer_id    = Column(String(200), nullable=True)
+    payment_method = Column(Enum(PaymentMethod), nullable=True)
+    plan           = Column(Enum(PlanType), nullable=False)
+    status         = Column(Enum(StatusSubPlains), default=StatusSubPlains.pending, nullable=False)
+    amount         = Column(Integer, nullable=True)
+    start          = Column(DateTime(timezone=True), nullable=True)
+    next_payment   = Column(DateTime(timezone=True), nullable=True)
+    canceled_at    = Column(DateTime(timezone=True), nullable=True)
+    created_at     = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at     = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
     user = relationship("User", back_populates="subscription")
+
+
+#dados da cobranca confirmada
+class Payment(BASE):
+    """
+    Histórico imutável de pagamentos.
+    Subscription = estado atual. Payment = cada cobrança confirmada.
+    """
+    __tablename__ = "payments"
+
+    id             = Column(Integer, primary_key=True)
+    user_id        = Column(String, ForeignKey("users.google_id"), nullable=False, index=True)
+    billing_id     = Column(String(200), nullable=False, index=True)
+    amount         = Column(Integer, nullable=False)
+    payment_method = Column(Enum(PaymentMethod), nullable=True)
+    plan           = Column(Enum(PlanType), nullable=False)
+    paid_at        = Column(DateTime(timezone=True), default=_now, nullable=False)
+
+    user = relationship("User")
+
+
+# 
+class PendingChatId(BASE):
+    """
+    Armazena temporariamente o chat_id capturado pelo webhook do Telegram.
+    Substitui o dict em memória — funciona com múltiplos workers.
+    TTL de 10 minutos verificado na query.
+    """
+    __tablename__ = "pending_chat_ids"
+
+    google_id  = Column(String, primary_key=True)
+    chat_id    = Column(String(100), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)

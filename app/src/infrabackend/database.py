@@ -1,26 +1,39 @@
-from google.cloud import bigquery
-from google.oauth2 import service_account
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from .config import DATABASE_URL, CONNECT_ARGS, CREDENTIALS, PROJECT_ID, TABLE
-from app.src.domain.models import BASE
-
-class LocalDatabase():
-    def __init__(self, url: str = DATABASE_URL):  
-        self.DATABASE_URL = url
-        self.ENGINE = create_engine(
-            self.DATABASE_URL,
-            echo=False,
-            pool_pre_ping=True,
-            connect_args=CONNECT_ARGS,
-        )
-        self.SESSION = sessionmaker(bind=self.ENGINE, autocommit=False, autoflush=False)
-        self.BASE = BASE
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, Session
+from typing import Generator
+from app.src.infrabackend.config import DATABASE_URL
 
 
-class CloudDatabase():
-    def __init__(self, credentials_path:str = CREDENTIALS, project_id: str = PROJECT_ID, table:str=TABLE):
-        self.credentials = service_account.Credentials.from_service_account_file(credentials_path)
-        self.client = bigquery.Client(credentials=self.credentials, project=project_id)
-        self.table = table
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_size=10,           
+    max_overflow=20,        
+    pool_recycle=3600,     
+    pool_pre_ping=True,   
+    pool_timeout=30,       
+)
 
+SessionLocal = sessionmaker(
+    bind=engine,
+    autocommit=False,   
+    autoflush=False,    
+)
+
+
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def check_db_connection() -> bool:
+    """Verifica se o banco está acessível. Usado no health check."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False

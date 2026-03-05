@@ -1,20 +1,41 @@
 import os
 from dotenv import load_dotenv
 
+#carrega as variavel de ambiente (.env)
 load_dotenv()
 
+#banco de dados
 DATABASE_URL = os.getenv("DATABASE_URL")
-CONNECT_ARGS = {}
 
-CREDENTIALS = os.getenv("CREDENTIALS")
-PROJECT_ID = os.getenv("PROJECT_ID")
-TABLE = os.getenv("TABLE")
+#bot token telegram
 BOT_TOKENS = [os.getenv("BOT_TOKEN_1"), os.getenv("BOT_TOKEN_2"), os.getenv("BOT_TOKEN_3")]
-BASE_URL = "https://afilibot.shop" #prod
+
+#url do site em prod ou dev
+BASE_URL = os.getenv("BASE_URL")
+
+#chave para cookie de sessao
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+#gateway de pagamento
 ABACATEPAY_API_KEY = os.getenv("ABACATEPAY_API_KEY")
 ABACATEPAY_API_URL = os.getenv("ABACATEPAY_API_URL")
 ABACATEPAY_WEBHOOK_SECRET = os.getenv("ABACATEPAY_WEBHOOK_SECRET")
-SHOPIFY_URLS = {
+
+#OAuth para logar
+GOOGLE_CLIENT_ID: str     = os.environ["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_SECRET: str = os.environ["GOOGLE_CLIENT_SECRET"]
+GOOGLE_REDIRECT_URI: str  = os.getenv(
+    "GOOGLE_REDIRECT_URI",
+    f"{BASE_URL}/auth/callback"
+)
+
+GOOGLE_AUTH_URL: str  = os.getenv("GOOGLE_AUTH_URL")
+GOOGLE_TOKEN_URL:str = os.getenv("GOOGLE_TOKEN_URL")
+GOOGLE_USERINFO:str  = os.getenv("GOOGLE_USERINFO")
+SCOPES: str           = os.getenv("SCOPES")
+
+#Lojas
+SHOPIFY_URLS : dict[str, str] = {
     "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
     "New": "https://newnewnew.com.br/products.json?limit=250",
     "Piet": "https://piet.com.br/products.json?limit=250",
@@ -28,7 +49,7 @@ SHOPIFY_URLS = {
     "IceCompany": "https://www.icecompany.com.br/products.json"
 }
 
-NUVEMSHOP_URLS = {
+NUVEMSHOP_URLS : dict[str, str] = {
     "Brunxind":"https://brunxind.com/",
     "Overstreets":"https://www.overstreets.com.br/",
     "Basyc":"https://www.basyc.com.br/",

@@ -15,17 +15,11 @@
             --orange:  #f97316;
             --text:    #f1f5f9;
             --muted:   #64748b;
-            --subtle:  #1e293b;
+            --green:   #22c55e;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100svh;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100svh; }
 
-        /* ── Fundo ── */
         .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
         .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.13; animation: drift 16s ease-in-out infinite alternate; }
         .orb-1 { width: 420px; height: 420px; background: var(--orange); top: -100px; left: -80px; animation-duration: 18s; }
@@ -33,7 +27,6 @@
         @keyframes drift { from{transform:translate(0,0) scale(1);} to{transform:translate(25px,18px) scale(1.07);} }
         .grid-overlay { position:fixed; inset:0; z-index:0; background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px); background-size:48px 48px; }
 
-        /* ── Nav ── */
         nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(2,6,23,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
         .nav-inner { max-width:760px; margin:0 auto; padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; }
         .logo { display:flex; align-items:center; gap:.6rem; text-decoration:none; }
@@ -44,33 +37,64 @@
         .back-link:hover { color:var(--text); }
         .back-link svg { width:14px; height:14px; }
 
-        /* ── Layout ── */
         .page { position:relative; z-index:10; max-width:760px; margin:0 auto; padding:100px 2rem 5rem; }
-
         .page-label { display:inline-flex; align-items:center; gap:.5rem; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2); padding:.3rem .85rem; border-radius:99px; font-size:.68rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:.08em; margin-bottom:1.25rem; }
         .page-label svg { width:12px; height:12px; }
         .page-title { font-size:2rem; font-weight:800; letter-spacing:-.03em; color:#fff; margin-bottom:.5rem; }
         .page-sub { font-size:.9rem; color:var(--muted); line-height:1.6; margin-bottom:2.5rem; }
 
-        /* ── Seções de form ── */
-        .form-section {
-            background:rgba(15,23,42,.75);
-            backdrop-filter:blur(20px);
-            border:1px solid var(--border);
-            border-radius:20px;
-            padding:2rem;
-            margin-bottom:1.25rem;
+        .step-box { background:rgba(15,23,42,.75); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:20px; padding:2rem; margin-bottom:1.25rem; }
+        .step-title { font-size:.95rem; font-weight:700; color:#fff; margin-bottom:1.25rem; display:flex; align-items:center; gap:.6rem; }
+        .step-num { width:24px; height:24px; border-radius:50%; background:var(--orange); display:grid; place-items:center; font-size:.7rem; font-weight:800; color:#fff; flex-shrink:0; }
+
+        /* Botão de adicionar ao grupo */
+        .btn-add-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .65rem;
+            width: 100%;
+            padding: .9rem 1.5rem;
+            background: #229ED9;
+            color: #fff;
+            font-family: inherit;
+            font-size: .95rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .15s, transform .15s;
+            box-shadow: 0 8px 28px rgba(34,158,217,.25);
+            margin-bottom: 1rem;
         }
+        .btn-add-group:hover { background: #1a8bbf; transform: translateY(-1px); }
+        .btn-add-group svg { width:18px; height:18px; flex-shrink:0; }
+        .btn-add-group.clicked { background: #1a8bbf; opacity: .8; pointer-events: none; }
+
+        .hint-text { font-size:.75rem; color:var(--muted); text-align:center; line-height:1.5; }
+
+        /* Status */
+        .status-row { display:flex; align-items:center; gap:.6rem; font-size:.82rem; padding:.75rem 1rem; border-radius:10px; margin-top:1rem; }
+        .status-idle { color:var(--muted); background:rgba(2,6,23,.5); border:1px solid var(--border); display:none; }
+        .status-waiting { color:var(--muted); background:rgba(2,6,23,.5); border:1px solid var(--border); display:none; }
+        .status-found { color:var(--green); background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); display:none; }
+        .status-row.visible { display:flex; }
+
+        .pulse { width:8px; height:8px; border-radius:50%; background:var(--orange); animation:pulse 1.4s ease-in-out infinite; flex-shrink:0; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.8);} }
+        .dot-green { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
+
+        /* Form */
+        .form-section { background:rgba(15,23,42,.75); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:20px; padding:2rem; margin-bottom:1.25rem; }
         .section-head { display:flex; align-items:center; gap:.75rem; padding-bottom:1.25rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(51,65,85,.4); }
         .section-icon { width:36px; height:36px; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2); border-radius:10px; display:grid; place-items:center; flex-shrink:0; }
         .section-icon svg { width:16px; height:16px; color:var(--orange); }
         .section-title { font-size:.95rem; font-weight:700; color:#fff; }
         .section-sub { font-size:.78rem; color:var(--muted); margin-top:.15rem; }
 
-        /* ── Grid de inputs ── */
         .input-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
         @media(max-width:540px){ .input-grid{grid-template-columns:1fr;} }
-
         .field-wrap { display:flex; flex-direction:column; gap:.5rem; }
         .field-label { font-size:.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; }
         .field-label span { color:var(--orange); }
@@ -78,74 +102,38 @@
         .input-wrap { position:relative; }
         .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); pointer-events:none; }
         .input-icon svg { width:15px; height:15px; color:#334155; }
-        input[type=text] {
-            width:100%; background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.6);
-            border-radius:12px; padding:.8rem 1rem .8rem 2.75rem;
-            font-family:inherit; font-size:.875rem; color:var(--text);
-            transition:border-color .15s, box-shadow .15s;
-        }
+        input[type=text] { width:100%; background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.6); border-radius:12px; padding:.8rem 1rem .8rem 2.75rem; font-family:inherit; font-size:.875rem; color:var(--text); transition:border-color .15s, box-shadow .15s; }
         input[type=text]::placeholder { color:#334155; }
         input[type=text]:focus { outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(249,115,22,.12); }
+        input[type=text].found { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.12); }
         .field-hint { font-size:.7rem; color:#334155; line-height:1.5; }
 
-        /* ── Lojas ── */
         .stores-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
         .stores-count { font-size:.78rem; color:var(--muted); }
         .stores-count strong { color:var(--orange); }
-        .btn-select-all { background:none; border:none; font-family:inherit; font-size:.75rem; font-weight:700; color:var(--orange); cursor:pointer; transition:color .15s; }
-        .btn-select-all:hover { color:#fb923c; }
-
+        .btn-select-all { background:none; border:none; font-family:inherit; font-size:.75rem; font-weight:700; color:var(--orange); cursor:pointer; }
         .stores-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.6rem; }
-
         .store-cb { display:none; }
-        .store-tile {
-            display:flex; align-items:center; justify-content:space-between; gap:.5rem;
-            padding:.7rem 1rem; border-radius:12px;
-            background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.5);
-            font-size:.82rem; font-weight:600; color:#94a3b8;
-            cursor:pointer; user-select:none;
-            transition:border-color .15s, background .15s, color .15s;
-        }
-        .store-tile:hover { border-color:rgba(51,65,85,.9); color:var(--text); }
+        .store-tile { display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding:.7rem 1rem; border-radius:12px; background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.5); font-size:.82rem; font-weight:600; color:#94a3b8; cursor:pointer; user-select:none; transition:border-color .15s, background .15s, color .15s; }
         .store-cb:checked + .store-tile { border-color:var(--orange); background:rgba(249,115,22,.08); color:var(--text); }
-        .check-dot {
-            width:8px; height:8px; border-radius:50%;
-            border:2px solid #334155;
-            flex-shrink:0;
-            transition:background .15s, border-color .15s;
-        }
+        .check-dot { width:8px; height:8px; border-radius:50%; border:2px solid #334155; flex-shrink:0; transition:background .15s, border-color .15s; }
         .store-cb:checked + .store-tile .check-dot { background:var(--orange); border-color:var(--orange); }
 
-        /* ── Erro ── */
         .error-box { display:none; align-items:center; gap:.6rem; padding:.85rem 1rem; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.25); border-radius:12px; font-size:.82rem; color:#f87171; margin-bottom:1rem; }
         .error-box.visible { display:flex; }
         .error-box svg { width:15px; height:15px; flex-shrink:0; }
 
-        /* ── Submit ── */
-        .btn-submit {
-            width:100%; padding:1rem; display:flex; align-items:center; justify-content:center; gap:.6rem;
-            background:var(--orange); color:#fff;
-            font-family:inherit; font-size:.95rem; font-weight:800;
-            border:none; border-radius:14px; cursor:pointer;
-            transition:background .15s, transform .15s, box-shadow .15s;
-            box-shadow:0 8px 28px rgba(249,115,22,.3);
-        }
-        .btn-submit:hover { background:#ea6d0e; transform:translateY(-1px); box-shadow:0 12px 32px rgba(249,115,22,.4); }
-        .btn-submit:disabled { opacity:.6; pointer-events:none; }
-        .btn-submit svg { width:17px; height:17px; }
+        .btn-submit { width:100%; padding:1rem; display:flex; align-items:center; justify-content:center; gap:.6rem; background:var(--orange); color:#fff; font-family:inherit; font-size:.95rem; font-weight:800; border:none; border-radius:14px; cursor:pointer; transition:background .15s, transform .15s, box-shadow .15s; box-shadow:0 8px 28px rgba(249,115,22,.3); }
+        .btn-submit:hover:not(:disabled) { background:#ea6d0e; transform:translateY(-1px); }
+        .btn-submit:disabled { opacity:.5; pointer-events:none; }
         .spinner-svg { animation:spin 0.8s linear infinite; display:none; }
         .btn-submit.loading .spinner-svg { display:block; }
         .btn-submit.loading .btn-icon { display:none; }
-        .btn-submit.loading .btn-txt { opacity:.7; }
         @keyframes spin { to{transform:rotate(360deg);} }
     </style>
 </head>
 <body>
-
-    <div class="bg-layer">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-    </div>
+    <div class="bg-layer"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
     <div class="grid-overlay"></div>
 
     <nav>
@@ -169,11 +157,36 @@
             Novo bot
         </div>
         <h1 class="page-title">Configure seu robô</h1>
-        <p class="page-sub">Preencha os dados abaixo para ativar a automação no seu canal do Telegram.</p>
+        <p class="page-sub">Adicione o bot ao seu grupo do Telegram e preencha os dados abaixo para ativar a automação.</p>
 
+        <!-- Passo 1 -->
+        <div class="step-box">
+            <div class="step-title">
+                <span class="step-num">1</span>
+                Adicione o bot ao seu grupo do Telegram
+            </div>
+
+            <a href="/api/telegram/add-to-group" target="_blank" class="btn-add-group" id="btn-add-group" onclick="onAddClicked()">
+                <!-- Telegram icon -->
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.1 14.226l-2.94-.918c-.64-.203-.654-.64.136-.954l11.5-4.432c.533-.194 1.001.131.766.326z"/></svg>
+                Adicionar bot ao grupo
+            </a>
+
+            <p class="hint-text">Ao clicar, o Telegram abrirá para você selecionar o grupo. Depois volte aqui.</p>
+
+            <!-- Estados -->
+            <div class="status-row status-waiting" id="status-waiting">
+                <span class="pulse"></span>
+                Aguardando o bot entrar no grupo...
+            </div>
+            <div class="status-row status-found" id="status-found">
+                <span class="dot-green"></span>
+                Bot detectado! Chat ID capturado automaticamente.
+            </div>
+        </div>
+
+        <!-- Passo 2 -->
         <form id="bot-form">
-
-            <!-- Telegram -->
             <div class="form-section">
                 <div class="section-head">
                     <div class="section-icon">
@@ -181,7 +194,7 @@
                     </div>
                     <div>
                         <div class="section-title">Telegram</div>
-                        <div class="section-sub">Onde o bot vai enviar as ofertas</div>
+                        <div class="section-sub">Dados do canal onde o bot vai enviar as ofertas</div>
                     </div>
                 </div>
                 <div class="input-grid">
@@ -189,9 +202,9 @@
                         <label class="field-label" for="chat_id">Chat ID <span>*</span></label>
                         <div class="input-wrap">
                             <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg></span>
-                            <input type="text" id="chat_id" placeholder="-1001234567890" required>
+                            <input type="text" id="chat_id" placeholder="Detectando automaticamente..." required readonly>
                         </div>
-                        <span class="field-hint">ID do canal ou grupo onde o bot vai postar.</span>
+                        <span class="field-hint">Preenchido automaticamente ao adicionar o bot ao grupo.</span>
                     </div>
                     <div class="field-wrap">
                         <label class="field-label" for="affiliate_link">Link de Afiliado <em>(opcional)</em></label>
@@ -215,22 +228,19 @@
                         <div class="section-sub">Selecione quais lojas o bot deve acompanhar</div>
                     </div>
                 </div>
-
                 <div class="stores-top">
                     <span class="stores-count" id="count-label"><strong>0</strong> lojas selecionadas</span>
                     <button type="button" class="btn-select-all" id="select-all">Selecionar todas</button>
                 </div>
-
                 <div class="stores-grid" id="store-grid"></div>
             </div>
 
-            <!-- Erro + submit -->
             <div class="error-box" id="error-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
                 <span id="error-text"></span>
             </div>
 
-            <button type="submit" class="btn-submit" id="submit-btn">
+            <button type="submit" class="btn-submit" id="submit-btn" disabled>
                 <svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                 <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <span class="btn-txt">Ativar robô</span>
@@ -239,76 +249,113 @@
     </div>
 
     <script>
-        const STORES = {
-            "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
-            "New": "https://newnewnew.com.br/products.json?limit=250",
-            "Piet": "https://piet.com.br/products.json?limit=250",
-            "Pace": "https://pacecompany.com.br/products.json?limit=250",
-            "Carnan": "https://www.carnan.com.br/products.json?limit=250",
-            "1of1": "https://1of1exclusivist.com/products.json?limit=250",
-            "EghoStudios": "https://egho.com.br/products.json?limit=250",
-            "Sufgang": "https://sufgang.com.br/products.json?limit=250",
-            "CienaLab": "https://cienalab.com.br/products.json?limit=250",
-            "Anty": "https://www.anty.com.br/products.json?limit=250",
-            "IceCompany": "https://www.icecompany.com.br/products.json",
-            "Brunxind": "https://brunxind.com/",
-            "Overstreets": "https://www.overstreets.com.br/",
-            "Basyc": "https://www.basyc.com.br/",
-            "Bussfly": "https://bussfly.com.br/",
-            "Captive Club": "https://captiveclub.com.br/",
-            "Malan": "https://www.malan.com.br/",
-            "ggar": "https://ggar.com.br/",
-            "Places Wo": "https://www.placeswo.com/",
-            "Delafoe": "https://delafoe.com.br/",
-            "SteetApparel": "https://www.streetapparel.com.br/",
-            "Wanted": "https://wantedind.com/",
-            "YungCeo": "https://yungceo.com.br/",
-            "Jet Company": "https://jetcompanybr.com/",
-            "Dest studios": "https://www.deststudios.com.br/",
-            "TakeOff": "https://takeoffcollection.com.br/"
-        };
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("payment") === "success") {
+            checkPaymentConfirmed();
+        }
 
-        const grid = document.getElementById('store-grid');
+        async function checkPaymentConfirmed() {
+            document.body.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#020617;color:#f1f5f9;font-family:sans-serif;gap:1rem;">
+                    <div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#f97316;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                    <p style="color:#64748b;">Confirmando seu pagamento...</p>
+                    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                </div>
+            `;
+            const interval = setInterval(async () => {
+                const res  = await fetch("/api/subscription/status");
+                const data = await res.json();
+                if (data.status === "active") {
+                    clearInterval(interval);
+                    window.location.href = "/createbot";
+                }
+            }, 3000);
+            setTimeout(() => { clearInterval(interval); window.location.href = "/dashboard"; }, 60000);
+        }
+
+        // ── Carrega lojas do backend (não mais hardcoded) ─────────────────────
+        const grid       = document.getElementById('store-grid');
         const countLabel = document.getElementById('count-label');
+
+        async function loadStores() {
+            try {
+                const res    = await fetch('/api/stores');
+                const stores = await res.json();
+
+                stores.forEach(({ brand }) => {
+                    const id = 'store-' + brand.replace(/\s/g, '-').toLowerCase();
+                    grid.insertAdjacentHTML('beforeend',
+                        `<label>
+                            <input type="checkbox" class="store-cb" id="${id}" value="${brand}">
+                            <span class="store-tile">${brand}<span class="check-dot"></span></span>
+                        </label>`
+                    );
+                });
+
+                document.querySelectorAll('.store-cb').forEach(cb =>
+                    cb.addEventListener('change', updateCount)
+                );
+            } catch (e) {
+                grid.innerHTML = '<p style="color:#64748b;font-size:.8rem;">Erro ao carregar lojas.</p>';
+            }
+        }
 
         function updateCount() {
             const n = document.querySelectorAll('.store-cb:checked').length;
             countLabel.innerHTML = '<strong>' + n + '</strong> loja' + (n !== 1 ? 's' : '') + ' selecionada' + (n !== 1 ? 's' : '');
         }
 
-        Object.entries(STORES).forEach(([name, url]) => {
-            const id = 'store-' + name.replace(/\s/g, '-').toLowerCase();
-            const val = JSON.stringify({name, url}).replace(/'/g, "&#39;");
-            grid.insertAdjacentHTML('beforeend',
-                '<label>' +
-                '<input type="checkbox" class="store-cb" id="' + id + '" value=\'' + val + '\'>' +
-                '<span class="store-tile">' + name + '<span class="check-dot"></span></span>' +
-                '</label>'
-            );
-        });
+        loadStores();
 
-        document.querySelectorAll('.store-cb').forEach(cb => cb.addEventListener('change', updateCount));
-
-        const selectAllBtn = document.getElementById('select-all');
-        selectAllBtn.addEventListener('click', () => {
-            const all = document.querySelectorAll('.store-cb');
+        document.getElementById('select-all').addEventListener('click', () => {
+            const all       = document.querySelectorAll('.store-cb');
             const allChecked = [...all].every(c => c.checked);
             all.forEach(c => c.checked = !allChecked);
-            selectAllBtn.textContent = allChecked ? 'Selecionar todas' : 'Desmarcar todas';
+            document.getElementById('select-all').textContent = allChecked ? 'Selecionar todas' : 'Desmarcar todas';
             updateCount();
         });
 
+        // ── Polling — inicia ao clicar em "Adicionar bot ao grupo" ───────────
+        let pollInterval = null;
+
+        function onAddClicked() {
+            document.getElementById('status-waiting').classList.add('visible');
+
+            if (pollInterval) return;
+            // 3s — rápido o suficiente para o usuário perceber
+            pollInterval = setInterval(async () => {
+                try {
+                    const res  = await fetch('/api/telegram/chat-id');
+                    const data = await res.json();
+
+                    if (data.found) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+
+                        const input = document.getElementById('chat_id');
+                        input.value = data.chat_id;
+                        input.classList.add('found');
+
+                        document.getElementById('status-waiting').classList.remove('visible');
+                        document.getElementById('status-found').classList.add('visible');
+                        document.getElementById('submit-btn').disabled = false;
+                    }
+                } catch (e) { /* ignora erro de rede */ }
+            }, 3000);
+        }
+
+        // ── Submit ────────────────────────────────────────────────────────────
         document.getElementById('bot-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const errorBox = document.getElementById('error-box');
-            const errorText = document.getElementById('error-text');
-            const btn = document.getElementById('submit-btn');
 
+            const errorBox  = document.getElementById('error-box');
+            const errorText = document.getElementById('error-text');
+            const btn       = document.getElementById('submit-btn');
             errorBox.classList.remove('visible');
 
             const chatId = document.getElementById('chat_id').value.trim();
             if (!chatId) {
-                errorText.textContent = 'Informe o Chat ID do canal ou grupo.';
+                errorText.textContent = 'Adicione o bot ao grupo para detectar o Chat ID automaticamente.';
                 errorBox.classList.add('visible');
                 return;
             }
@@ -320,23 +367,28 @@
                 return;
             }
 
-            const stores = {};
-            selected.forEach(cb => { const s = JSON.parse(cb.value); stores[s.name] = s.url; });
+            // Manda lista de brands — backend espera { chat_id, brands: [...] }
+            const brands = [...selected].map(cb => cb.value);
 
             btn.classList.add('loading');
             btn.disabled = true;
 
             try {
                 const res = await fetch('/api/setup-bot', {
-                    method: 'POST',
+                    method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        stores: stores,
-                        affiliate_link: document.getElementById('affiliate_link').value.trim() || null
-                    })
+                    body:    JSON.stringify({
+                        chat_id:        chatId,
+                        brands:         brands,
+                        affiliate_link: document.getElementById('affiliate_link').value.trim() || null,
+                    }),
                 });
-                if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'Erro no servidor.'); }
+
+                if (!res.ok) {
+                    const d = await res.json().catch(() => ({}));
+                    throw new Error(d.detail || 'Erro no servidor.');
+                }
+
                 window.location.href = '/dashboard';
             } catch (err) {
                 errorText.textContent = err.message;

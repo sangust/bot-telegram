@@ -1,31 +1,39 @@
 import json
-import hmac
-import hashlib
-from datetime import date, timedelta
+import logging
+from datetime import datetime, timezone, timedelta
 
 import httpx
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-from app.src.domain.models import User, Subscription, StatusSubPlains, SubPlains
-from app.src.infrabackend.database import LocalDatabase
-from app.src.infrabackend.config import ABACATEPAY_API_KEY, ABACATEPAY_API_URL, BASE_URL
+from app.src.infrabackend.database import get_db
+from app.src.infrabackend.repository import SubscriptionRepository
+from app.src.infrabackend.schemas import CheckoutRequestSchema
+from app.src.domain.models import User, Subscription, StatusSubPlains, SubPlains, PlanType
+from app.src.infrabackend.config import (
+    ABACATEPAY_API_KEY,
+    ABACATEPAY_API_URL,
+    ABACATEPAY_WEBHOOK_SECRET,
+    BASE_URL,
+)
 from app.api.routes.auth import current_user
 
+logger    = logging.getLogger(__name__)
 templates = Jinja2Templates("app/templates")
 subscription = APIRouter(tags=["subscription"])
 
 PLANS = {
-    "monthly": {
+    PlanType.monthly: {
         "externalId": "prod_CXDmgttsELW0YG4g35Wwk1NA",
         "name":       "afilibot — Plano Mensal",
         "price":      1499,
         "days":       30,
         "frequency":  "MULTIPLE_PAYMENTS",
     },
-    "annual": {
+    PlanType.annual: {
+        "externalId": "prod_YKJh0WgxMcZmk4Q5uMeaNF5F",
         "name":       "afilibot — Plano Anual",
         "price":      14999,
         "days":       365,
@@ -34,51 +42,47 @@ PLANS = {
 }
 
 
-class CheckoutRequest(BaseModel):
-    plan: str
-
+# ── Página ────────────────────────────────────────────────────────────────────
 
 @subscription.get("/subscription")
-async def subscription_page(request: Request):
-    user = current_user(request)
+async def subscription_page(request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
     if not user:
         return RedirectResponse("/")
     return templates.TemplateResponse("subscription.html", {"request": request})
 
 
+# ── Status ────────────────────────────────────────────────────────────────────
+
 @subscription.get("/api/subscription/status")
-async def subscription_status(request: Request):
-    user = current_user(request)
+async def subscription_status(request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
     if not user:
         return JSONResponse({"error": "not authenticated"}, status_code=401)
 
-    db = LocalDatabase()
-    session = db.SESSION()
-    try:
-        sub = (
-            session.query(Subscription)
-            .filter(Subscription.user_id == user["google_id"])
-            .order_by(Subscription.id.desc())
-            .first()
-        )
+    repo = SubscriptionRepository(db)
+    sub  = repo.get_by_user_id(user["google_id"])
+    if not sub:
+        return {"has_subscription": False}
 
-        if not sub:
-            return {"has_subscription": False, "status": None}
+    return {
+        "has_subscription": True,
+        "status":       sub.status,
+        "plan":         sub.plan,
+        "next_payment": sub.next_payment.isoformat() if sub.next_payment else None,
+        "canceled_at":  sub.canceled_at.isoformat()  if sub.canceled_at  else None,
+    }
 
-        return {
-            "has_subscription": True,
-            "status":       sub.status,
-            "plan":         sub.plan,
-            "next_payment": str(sub.next_payment) if sub.next_payment else None,
-            "canceled_at":  str(sub.canceled_at)  if sub.canceled_at  else None,
-        }
-    finally:
-        session.close()
 
+# ── Checkout ──────────────────────────────────────────────────────────────────
 
 @subscription.post("/api/subscription/checkout")
-async def create_checkout(request: Request, body: CheckoutRequest):
-    user = current_user(request)
+async def create_checkout(
+    request: Request,
+    body:    CheckoutRequestSchema,
+    db:      Session = Depends(get_db),
+):
+    user = current_user(request, db)
     if not user:
         return JSONResponse({"error": "not authenticated"}, status_code=401)
 
@@ -88,29 +92,25 @@ async def create_checkout(request: Request, body: CheckoutRequest):
 
     payload = {
         "frequency": plan["frequency"],
-        "methods": ["PIX", "CARD"],
+        "methods":   ["PIX", "CARD"],
         "customer": {
-            "name":      user["name"],
-            "email":     user["email"],
-            "cellphone": "(11) 4002-8922",
-            "taxId":     "090.088.411-85",
+            "name":  user["name"],
+            "email": user["email"],
+            "taxId": "090.088.411-85",
+            "cellphone": "(11) 4002-8922"
         },
-        "products": [
-            {
-                "externalId":  plan["externalId"],
-                "name":        plan["name"],
-                "quantity":    1,
-                "price":       plan["price"],
-                "description": "Bot de promocoes",
-            }
-        ],
-        "metadata": {
-            "google_id": user["google_id"],
-            "plan":      body.plan,
-        },
+        "products": [{
+            "externalId":  plan["externalId"],
+            "name":        plan["name"],
+            "quantity":    1,
+            "price":       plan["price"],
+            "description": "Automação de afiliados",
+        }],
+        # Secret removido da query string — qualquer pessoa que veja os logs da URL conseguia forjar webhooks
+        # O AbacatePay deve validar via HMAC no header (ver webhook abaixo)
         "webhookUrl":    f"{BASE_URL}/api/subscription/webhook",
         "completionUrl": f"{BASE_URL}/createbot?payment=success",
-        "returnUrl":     f"{BASE_URL}/subscription",
+        "returnUrl":     f"{BASE_URL}/",
     }
 
     async with httpx.AsyncClient() as client:
@@ -125,147 +125,144 @@ async def create_checkout(request: Request, body: CheckoutRequest):
         )
 
     if response.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"Erro ao criar cobrança: {response.text}")
+        logger.error("Erro AbacatePay checkout: %s", response.text)
+        raise HTTPException(status_code=502, detail="Erro ao criar checkout.")
 
-    data = response.json()
-    billing = data.get("data", {})
-    return {"payment_url": billing.get("url")}
+    billing    = response.json().get("data", {})
+    billing_id = billing.get("id")
+    url        = billing.get("url")
 
+    if not billing_id:
+        raise HTTPException(status_code=502, detail="AbacatePay não retornou billing_id")
+
+    repo = SubscriptionRepository(db)
+    try:
+        repo.create_or_update_pending(
+            user_id    = user["google_id"],
+            billing_id = billing_id,
+            plan       = body.plan,
+            amount     = plan["price"],
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Erro ao salvar subscription pending")
+        raise HTTPException(status_code=500, detail="Erro interno ao salvar checkout.")
+
+    return {"payment_url": url}
+
+
+# ── Webhook ───────────────────────────────────────────────────────────────────
 
 @subscription.post("/api/subscription/webhook")
-async def abacatepay_webhook(request: Request):
-    body_bytes = await request.body()
+async def abacatepay_webhook(request: Request, db: Session = Depends(get_db)):
+    # Valida o secret pelo header em vez de query string
+    # Se o AbacatePay ainda não suportar header, troque pela linha comentada abaixo
+    webhook_secret = request.headers.get("x-webhook-secret", "")
+    # webhook_secret = request.query_params.get("webhookSecret", "")  # fallback temporário
 
-    signature_header = request.headers.get("x-abacatepay-signature", "")
-    expected = hmac.new(
-        key=ABACATEPAY_API_KEY.encode(),
-        msg=body_bytes,
-        digestmod=hashlib.sha256,
-    ).hexdigest()
-
-    if not hmac.compare_digest(signature_header, expected):
+    if webhook_secret != ABACATEPAY_WEBHOOK_SECRET:
         raise HTTPException(status_code=401, detail="Assinatura inválida")
 
     try:
-        event = json.loads(body_bytes)
+        event = json.loads(await request.body())
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Payload inválido")
 
-    event_type = event.get("event")
-    billing    = event.get("data", {})
-    metadata   = billing.get("metadata", {})
-    google_id  = metadata.get("google_id")
-    plan_key   = metadata.get("plan")
-    billing_id = billing.get("id")
+    event_type  = event.get("event")
+    billing     = event.get("data", {}).get("billing", {})
+    payment     = event.get("data", {}).get("payment", {})
+    billing_id  = billing.get("id")
+    customer_id = billing.get("customer", {}).get("id")
 
-    if not google_id or not plan_key:
-        raise HTTPException(status_code=400, detail="Metadata incompleto")
+    if not billing_id:
+        raise HTTPException(status_code=400, detail="billing_id ausente")
 
-    plan = PLANS.get(plan_key)
-    if not plan:
-        raise HTTPException(status_code=400, detail="Plano desconhecido")
+    repo = SubscriptionRepository(db)
+    sub  = repo.get_by_billing_id(billing_id)
 
-    db = LocalDatabase()
-    session = db.SESSION()
+    if not sub:
+        # Billing de outro ambiente (staging vs prod) — ignora sem erro
+        logger.warning("Webhook para billing_id desconhecido: %s", billing_id)
+        return {"received": True}
+
     try:
-        sub = (
-            session.query(Subscription)
-            .filter(Subscription.abacatepay_id == billing_id)
-            .first()
-        )
+        user_obj = db.query(User).filter(User.google_id == sub.user_id).first()
+        plan_cfg = PLANS.get(sub.plan, {})
+        now      = datetime.now(timezone.utc)
 
         if event_type == "billing.paid":
-            today = date.today()
-            if sub:
-                sub.status       = StatusSubPlains.active
-                sub.next_payment = today + timedelta(days=plan["days"])
-                sub.canceled_at  = None
-            else:
-                sub = Subscription(
-                    user_id       = google_id,
-                    abacatepay_id = billing_id,
-                    status        = StatusSubPlains.active,
-                    plan          = plan_key,
-                    value         = plan["price"] / 100,
-                    start         = today,
-                    next_payment  = today + timedelta(days=plan["days"]),
-                )
-                session.add(sub)
-
-            user_obj = session.query(User).filter(User.google_id == google_id).first()
+            sub.status         = StatusSubPlains.active
+            sub.customer_id    = customer_id
+            sub.payment_method = payment.get("method")
+            sub.amount         = billing.get("amount", sub.amount)
+            sub.start          = now
+            sub.next_payment   = now + timedelta(days=plan_cfg.get("days", 30))
+            sub.canceled_at    = None
             if user_obj:
-                user_obj.subplain = SubPlains.basic
+                user_obj.subplain = SubPlains.premium
+            repo.record_payment(sub)
 
         elif event_type == "billing.canceled":
-            if sub:
-                sub.status      = StatusSubPlains.canceled
-                sub.canceled_at = date.today()
-            user_obj = session.query(User).filter(User.google_id == google_id).first()
+            sub.status      = StatusSubPlains.canceled
+            sub.canceled_at = now
             if user_obj:
                 user_obj.subplain = SubPlains.free
 
         elif event_type == "billing.expired":
-            if sub:
-                sub.status = StatusSubPlains.expired
-            user_obj = session.query(User).filter(User.google_id == google_id).first()
+            sub.status = StatusSubPlains.expired
             if user_obj:
                 user_obj.subplain = SubPlains.free
 
-        session.commit()
+        else:
+            logger.info("Evento desconhecido: %s", event_type)
+
+        db.commit()
         return {"received": True}
 
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        session.close()
+    except Exception:
+        db.rollback()
+        logger.exception("Erro ao processar webhook billing_id=%s", billing_id)
+        raise HTTPException(status_code=500, detail="Erro interno ao processar webhook.")
 
+
+# ── Cancelar ──────────────────────────────────────────────────────────────────
 
 @subscription.post("/api/subscription/cancel")
-async def cancel_subscription(request: Request):
-    user = current_user(request)
+async def cancel_subscription(request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
     if not user:
         return JSONResponse({"error": "not authenticated"}, status_code=401)
 
-    db = LocalDatabase()
-    session = db.SESSION()
-    try:
-        sub = (
-            session.query(Subscription)
-            .filter(
-                Subscription.user_id == user["google_id"],
-                Subscription.status  == StatusSubPlains.active,
-            )
-            .first()
+    repo = SubscriptionRepository(db)
+    sub  = repo.get_by_user_id(user["google_id"])
+
+    if not sub or sub.status != StatusSubPlains.active:
+        raise HTTPException(status_code=404, detail="Nenhuma assinatura ativa")
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{ABACATEPAY_API_URL}/billing/{sub.billing_id}/cancel",
+            headers={"Authorization": f"Bearer {ABACATEPAY_API_KEY}"},
+            timeout=15.0,
         )
 
-        if not sub:
-            raise HTTPException(status_code=404, detail="Nenhuma assinatura ativa encontrada")
+    if response.status_code not in (200, 204):
+        logger.error("Erro ao cancelar no AbacatePay: %s", response.text)
+        raise HTTPException(status_code=502, detail="Erro ao cancelar no AbacatePay")
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{ABACATEPAY_API_URL}/billing/{sub.abacatepay_id}/cancel",
-                headers={"Authorization": f"Bearer {ABACATEPAY_API_KEY}"},
-                timeout=15.0,
-            )
+    now             = datetime.now(timezone.utc)
+    sub.status      = StatusSubPlains.canceled
+    sub.canceled_at = now
 
-        if response.status_code not in (200, 204):
-            raise HTTPException(status_code=502, detail="Erro ao cancelar no AbacatePay")
+    user_obj = db.query(User).filter(User.google_id == user["google_id"]).first()
+    if user_obj:
+        user_obj.subplain = SubPlains.free
 
-        sub.status      = StatusSubPlains.canceled
-        sub.canceled_at = date.today()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Erro ao salvar cancelamento.")
 
-        user_obj = session.query(User).filter(User.google_id == user["google_id"]).first()
-        if user_obj:
-            user_obj.subplain = SubPlains.free
-
-        session.commit()
-        return {"canceled": True}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        session.close()
+    return {"canceled": True}

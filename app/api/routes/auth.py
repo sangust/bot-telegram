@@ -1,71 +1,66 @@
-import os
-from datetime import date
+import logging
+from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.src.infrabackend.database import LocalDatabase
-from app.src.domain.models import User
+from sqlalchemy.orm import Session
 
-auth = APIRouter(tags=["auth"])
+from app.src.infrabackend.database import get_db
+from app.src.infrabackend.repository import UserRepository
+from app.src.infrabackend.config import (
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI,
+    GOOGLE_AUTH_URL,
+    GOOGLE_TOKEN_URL,
+    GOOGLE_USERINFO,
+    SCOPES,
+)
+
+logger = logging.getLogger(__name__)
+
+auth      = APIRouter(tags=["auth"])
 templates = Jinja2Templates("app/templates")
 
-GOOGLE_CLIENT_ID     = os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI  = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback")
-
-_GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth"
-_GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-_GOOGLE_USERINFO  = "https://www.googleapis.com/oauth2/v3/userinfo"
-
-_SCOPES = "openid email profile"
 
 
+# ── Login ─────────────────────────────────────────────────────────────────────
 
 @auth.get("/login")
 async def login_page(request: Request):
-    """
-    Serve o HTML da tela de login.
-    Se o usuário já estiver logado, redireciona direto pro dashboard.
-    """
-    if current_user(request):
+    if request.session.get("google_id"):
         return RedirectResponse("/dashboard")
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-# ── Redirect para o Google ────────────────────────────────────────────────────
 
 @auth.get("/auth/login")
 async def login_redirect():
-    """
-    Monta a URL de autenticação do Google e redireciona o usuário.
-    Disparado quando o usuário clica em "Entrar com Google".
-    """
-    params = {
+    params = urlencode({
         "client_id":     GOOGLE_CLIENT_ID,
         "redirect_uri":  GOOGLE_REDIRECT_URI,
         "response_type": "code",
-        "scope":         _SCOPES,
+        "scope":         SCOPES,
         "access_type":   "offline",
         "prompt":        "select_account",
-    }
-    query = "&".join(f"{k}={v}" for k, v in params.items())
-    return RedirectResponse(f"{_GOOGLE_AUTH_URL}?{query}")
+    })
+    return RedirectResponse(f"{GOOGLE_AUTH_URL}?{params}")
 
 
 # ── Callback do Google ────────────────────────────────────────────────────────
 
 @auth.get("/auth/callback")
-async def callback(request: Request, code: str):
-    """
-    O Google redireciona aqui depois que o usuário autoriza o acesso.
-    Fluxo: code → access_token → dados do usuário → upsert no banco → sessão → dashboard.
-    """
-    # 1. Troca o code temporário por um access_token real
+async def callback(
+    request: Request,
+    code:    str,
+    db:      Session = Depends(get_db),   # sessão gerenciada pelo FastAPI
+):
+    # 1. Troca o code por access_token
     async with httpx.AsyncClient() as client:
-        token_response = await client.post(
-            _GOOGLE_TOKEN_URL,
+        token_resp = await client.post(
+            GOOGLE_TOKEN_URL,
             data={
                 "code":          code,
                 "client_id":     GOOGLE_CLIENT_ID,
@@ -75,55 +70,41 @@ async def callback(request: Request, code: str):
             },
         )
 
-    if token_response.status_code != 200:
+    if token_resp.status_code != 200:
+        logger.error("Falha ao obter token Google: %s", token_resp.text)
         raise HTTPException(status_code=400, detail="Falha ao obter token do Google.")
 
-    access_token = token_response.json().get("access_token")
+    access_token = token_resp.json().get("access_token")
 
-    # 2. Usa o access_token para buscar os dados do usuário logado
+    # 2. Busca dados do usuário
     async with httpx.AsyncClient() as client:
-        userinfo_response = await client.get(
-            _GOOGLE_USERINFO,
+        userinfo_resp = await client.get(
+            GOOGLE_USERINFO,
             headers={"Authorization": f"Bearer {access_token}"},
         )
 
-    if userinfo_response.status_code != 200:
+    if userinfo_resp.status_code != 200:
         raise HTTPException(status_code=400, detail="Falha ao buscar dados do usuário.")
 
-    userinfo  = userinfo_response.json()
-    google_id = userinfo.get("sub")    # ID único e permanente do usuário no Google
+    userinfo  = userinfo_resp.json()
+    google_id = userinfo.get("sub")
     email     = userinfo.get("email")
-    name      = userinfo.get("name")
+    name      = userinfo.get("name", "")
 
     if not google_id or not email:
         raise HTTPException(status_code=400, detail="Dados insuficientes retornados pelo Google.")
 
-    # 3. Cria o usuário no banco se for a primeira vez, ou atualiza o nome
-    db      = LocalDatabase()
-    session = db.SESSION()
-
+    # 3. Upsert no banco — sessão fechada automaticamente pelo Depends ao final
+    repo = UserRepository(db)
     try:
-        user = session.query(User).filter(User.google_id == google_id).first()
-
-        if not user:
-            user = User(
-                google_id  = google_id,
-                email      = email,
-                name       = name,
-                created_at = date.today(),
-            )
-            session.add(user)
-        else:
-            user.name = name  # atualiza caso tenha mudado no Google
-
-        session.commit()
-
+        repo.upsert(google_id=google_id, email=email, name=name)
+        db.commit()
     except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao salvar usuário: {e}")
+        db.rollback()
+        logger.exception("Erro ao salvar usuário %s", google_id)
+        raise HTTPException(status_code=500, detail="Erro ao salvar usuário.")
 
-    finally:
-        session.close()
+    # 4. Salva na sessão
     request.session["google_id"] = google_id
     request.session["email"]     = email
     request.session["name"]      = name
@@ -135,35 +116,40 @@ async def callback(request: Request, code: str):
 
 @auth.get("/auth/logout")
 async def logout(request: Request):
-    """Limpa a sessão e manda o usuário de volta pra landing page."""
     request.session.clear()
     return RedirectResponse("/")
 
 
 # ── Helper: usuário atual ─────────────────────────────────────────────────────
 
-def current_user(request: Request) -> dict | None:
+def current_user(request: Request, db: Session = Depends(get_db)) -> dict | None:
     """
-    Retorna os dados do usuário logado a partir da sessão.
+    Retorna dados do usuário logado com o plano atual.
     Retorna None se não houver sessão ativa.
 
-    Como usar em qualquer rota que precise de autenticação:
-
-        from app.api.routes.auth import current_user
+    Como usar em rotas:
 
         @router.get("/dashboard")
-        async def dashboard(request: Request):
-            user = current_user(request)
+        async def dashboard(
+            request: Request,
+            db:      Session = Depends(get_db),
+        ):
+            user = current_user(request, db)
             if not user:
                 return RedirectResponse("/login")
-            ...
     """
     google_id = request.session.get("google_id")
     if not google_id:
+        return None
+
+    repo = UserRepository(db)
+    user = repo.get_by_google_id(google_id)
+    if not user:
         return None
 
     return {
         "google_id": google_id,
         "email":     request.session.get("email"),
         "name":      request.session.get("name"),
+        "plan":      user.subplain,
     }
