@@ -73,7 +73,7 @@ docker run -d \
 
 for worker_index in $(seq 1 ${worker_count}); do
   docker run -d \
-    --name afilibot-worker-${worker_index} \
+    --name afilibot-worker-$${worker_index} \
     --restart always \
     --network host \
     --env-file /opt/afilibot/.env \
