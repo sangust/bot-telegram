@@ -206,6 +206,7 @@ async def setup(request: Request, db: Session = Depends(get_db)):
 
     bot_repo = BotRepository(db)
     bot = bot_repo.get_by_user_id(google_id)
+    is_new_bot = bot is None
     bot_token = bot.bot_token if bot else (pending.bot_token if pending else select_bot_token(google_id))
 
     if bot:
@@ -233,7 +234,8 @@ async def setup(request: Request, db: Session = Depends(get_db)):
 
     bot_repo.set_stores(bot, stores, affiliate_links=affiliate_links)
     sync_bot_schedules(db, bot, schedule_times)
-    enqueue_immediate_delivery(db, bot)
+    if is_new_bot:
+        enqueue_immediate_delivery(db, bot)
     PendingChatRepository(db).delete_by_google_id(google_id)
 
     try:

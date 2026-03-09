@@ -51,7 +51,7 @@ EOF
 echo "${dockerhub_token}" | docker login -u "${dockerhub_username}" --password-stdin
 docker pull ${dockerhub_username}/afilibot:latest
 
-docker rm -f afilibot afilibot-web afilibot-worker >/dev/null 2>&1 || true
+docker rm -f afilibot afilibot-web afilibot-worker afilibot-scraper >/dev/null 2>&1 || true
 docker ps -a --format '{{.Names}}' | grep '^afilibot-worker-' | xargs -r docker rm -f >/dev/null 2>&1 || true
 
 # ── Migrations ────────────────────────────────────────────────────────────────
@@ -80,6 +80,14 @@ for worker_index in $(seq 1 ${worker_count}); do
     -e APP_ROLE=worker \
     ${dockerhub_username}/afilibot:latest
 done
+
+docker run -d \
+  --name afilibot-scraper \
+  --restart always \
+  --network host \
+  --env-file /opt/afilibot/.env \
+  -e APP_ROLE=scraper \
+  ${dockerhub_username}/afilibot:latest
 
 for i in $(seq 1 30); do
   if curl -fsS http://127.0.0.1:8000/health >/dev/null; then

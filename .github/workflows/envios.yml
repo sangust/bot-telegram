@@ -19,7 +19,7 @@ jobs:
       ARM_SUBSCRIPTION_ID:           ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
       ARM_TENANT_ID:                 ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
       TF_VAR_ssh_public_key:         ${{ secrets.SSH_PUBLIC_KEY }}
-      TF_VAR_db_password:            ${{ secrets.DB_PASSWORD }}
+      TF_VAR_db_password:            ${{ secrets.TF_VAR_DB_PASSWORD }}
       TF_VAR_dockerhub_username:     ${{ secrets.DOCKERHUB_USERNAME }}
       TF_VAR_dockerhub_token:        ${{ secrets.DOCKERHUB_TOKEN }}
       TF_VAR_database_url:           ${{ secrets.DATABASE_URL }}

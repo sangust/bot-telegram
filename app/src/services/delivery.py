@@ -217,6 +217,19 @@ def enqueue_delivery_job(
 
 
 def enqueue_immediate_delivery(db: Session, bot: Bot) -> DeliveryJob:
+    existing = (
+        db.query(DeliveryJob)
+        .filter(
+            DeliveryJob.bot_id == bot.id,
+            DeliveryJob.schedule_id.is_(None),
+            DeliveryJob.status.in_([DeliveryJobStatus.pending, DeliveryJobStatus.running]),
+        )
+        .order_by(DeliveryJob.run_at.asc())
+        .first()
+    )
+    if existing:
+        return existing
+
     run_at = utc_now() + timedelta(seconds=5)
     return enqueue_delivery_job(db=db, bot=bot, run_at=run_at, schedule_id=None)
 
@@ -235,9 +248,12 @@ def schedule_bot_jobs(db: Session, reference: datetime | None = None) -> int:
     )
 
     for bot in bots:
+        bot_created_local = bot.created_at.astimezone(tz) if bot.created_at else None
+        bot_created_today = bool(bot_created_local and bot_created_local.date() == local_now.date())
         for schedule in bot.schedules:
+            base_date = local_now.date() + timedelta(days=1) if bot_created_today else local_now.date()
             schedule_local = datetime.combine(
-                local_now.date(),
+                base_date,
                 time(hour=schedule.run_time.hour, minute=schedule.run_time.minute, tzinfo=tz),
                 tzinfo=tz,
             )

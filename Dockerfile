@@ -28,6 +28,6 @@ USER appuser
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD sh -c 'if [ "$APP_ROLE" = "worker" ]; then pgrep -f "python -m app.runtime" >/dev/null; else curl -fsS http://127.0.0.1:8000/health >/dev/null; fi' || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD sh -c 'if [ "$APP_ROLE" = "web" ]; then curl -fsS http://127.0.0.1:8000/health >/dev/null; else pgrep -f "python -m app.runtime" >/dev/null; fi' || exit 1
 
 CMD ["python", "-m", "app.runtime"]
