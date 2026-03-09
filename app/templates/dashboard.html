@@ -328,9 +328,16 @@
 
                 // Status badge
                 const isActive = String(data.status).toLowerCase() === 'active';
-                document.getElementById('stat-status').innerHTML = isActive
-                    ? '<span class="inline-flex items-center gap-1.5 text-brand-primary text-sm font-bold"><span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse inline-block"></span>Ativo</span>'
-                    : '<span class="text-gray-400 text-sm font-bold">Pausado</span>';
+                const pendingJobs = Number(data.pending_jobs || 0);
+                const recentJobs = Array.isArray(data.recent_jobs) ? data.recent_jobs : [];
+                const hasFailures = recentJobs.includes('failed');
+                document.getElementById('stat-status').innerHTML = !isActive
+                    ? '<span class="text-gray-400 text-sm font-bold">Pausado</span>'
+                    : hasFailures
+                        ? '<span class="inline-flex items-center gap-1.5 text-yellow-400 text-sm font-bold"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span>Atenção</span>'
+                        : pendingJobs > 0
+                            ? `<span class="inline-flex items-center gap-1.5 text-brand-primary text-sm font-bold"><span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse inline-block"></span>Fila ${pendingJobs}</span>`
+                            : '<span class="inline-flex items-center gap-1.5 text-brand-primary text-sm font-bold"><span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse inline-block"></span>Ativo</span>';
 
                 // Sidebar bot link
                 document.getElementById('sidebar-bots-list').innerHTML = `

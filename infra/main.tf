@@ -116,7 +116,7 @@ resource "azurerm_linux_virtual_machine" "afilibot" {
   name                = "afilibot"
   location            = var.location
   resource_group_name = azurerm_resource_group.afilibot.name
-  size                = "Standard_B1ms"
+  size                = var.vm_size
   admin_username      = "ubuntu"
 
   network_interface_ids = [
@@ -159,6 +159,7 @@ resource "azurerm_linux_virtual_machine" "afilibot" {
     dockerhub_username        = var.dockerhub_username
     dockerhub_token           = var.dockerhub_token
     db_password               = var.db_password
+    worker_count              = var.worker_count
   }))
 
   tags = {

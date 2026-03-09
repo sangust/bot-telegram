@@ -4,6 +4,7 @@ from telegram import Bot
 from telegram.request import HTTPXRequest
 from ..infrabackend.repository import BotRepository
 from ..infrabackend.database import SessionLocal
+from ..infrabackend.config import MAX_PRODUCTS_PER_RUN, TELEGRAM_SEND_DELAY_SECONDS
 from ..domain.models import Product, MLProduct, Bot as meuBot
 
 
@@ -79,9 +80,15 @@ class Afilibot:
 
 
 
-    async def send_promotions(self, brands: list[str], affiliate_link: str | None = None) -> dict:
+    async def send_promotions(
+        self,
+        brands: list[str],
+        affiliate_links: dict[str, str] | None = None,
+        default_affiliate_link: str | None = None,
+    ) -> dict:
         ml_categories   = [b for b in brands if b.startswith("ML-")]
         regular_brands  = [b for b in brands if not b.startswith("ML-")]
+        affiliate_links = affiliate_links or {}
 
         with SessionLocal() as db:
             botrepo      = BotRepository(db)
@@ -107,14 +114,15 @@ class Afilibot:
         batch_counter = 0
 
         for kind, product in all_items:
-            await asyncio.sleep(10)
+            await asyncio.sleep(TELEGRAM_SEND_DELAY_SECONDS)
 
             try:
                 if kind == "ml":
-                    msg   = self._format_ml_message(product, affiliate_link)
+                    msg   = self._format_ml_message(product, default_affiliate_link)
                     image = product.image
                 else:
-                    msg   = self._format_message(product, affiliate_link)
+                    product_affiliate_link = affiliate_links.get(product.brand) or default_affiliate_link
+                    msg   = self._format_message(product, product_affiliate_link)
                     image = product.image
 
                 await self.bot.send_photo(
@@ -141,7 +149,7 @@ class Afilibot:
                         db.commit()
                     batch_counter = 0
 
-                if sent == 50:
+                if sent == MAX_PRODUCTS_PER_RUN:
                     break
 
             except Exception as e:

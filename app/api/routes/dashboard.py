@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from app.src.infrabackend.database import get_db
-from app.src.infrabackend.repository import BotRepository
+from app.src.infrabackend.repository import BotRepository, DeliveryJobRepository
 from app.src.domain.models import Bot, Product, SubPlains, PlanType
 from app.api.routes.auth import current_user
 
@@ -66,6 +66,7 @@ async def stats(request: Request, db: Session = Depends(get_db)):
         }
 
     stores = [{"brand": bs.brand} for bs in bot.stores]
+    jobs_repo = DeliveryJobRepository(db)
 
     repo.reset_today_sent_if_needed(bot)
     db.commit()
@@ -76,6 +77,8 @@ async def stats(request: Request, db: Session = Depends(get_db)):
         "sent_today": bot.today_sent or 0,
         "sent_total": bot.all_sent   or 0,
         "status":     bot.status,
+        "pending_jobs": jobs_repo.count_pending(bot.id),
+        "recent_jobs": [job.status for job in jobs_repo.get_latest_for_bot(bot.id, limit=3)],
         "subscription_plan": user["subscription_plan"],
         "limits": limits,
     }

@@ -2,7 +2,19 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.src.domain.models import Product, Bot, User, Subscription, Payment, Store, BotStore
+from app.src.domain.models import (
+    Product,
+    Bot,
+    User,
+    Subscription,
+    Payment,
+    Store,
+    BotStore,
+    BotSchedule,
+    DeliveryJob,
+    PendingChatId,
+    DeliveryJobStatus,
+)
 from app.src.infrabackend.schemas import ProductSchema
 
 
@@ -53,14 +65,21 @@ class BotRepository:
         self.db.flush()
         return bot
 
-    def set_stores(self, bot: Bot, stores: list[Store]) -> None:
+    def set_stores(self, bot: Bot, stores: list[Store], affiliate_links: dict[str, str] | None = None) -> None:
         """
         Substitui todas as lojas do bot pelas novas.
         Deleta os BotStore existentes e recria com brand como FK.
         """
+        affiliate_links = affiliate_links or {}
         self.db.query(BotStore).filter(BotStore.bot_id == bot.id).delete()
         for store in stores:
-            self.db.add(BotStore(bot_id=bot.id, brand=store.brand))
+            self.db.add(
+                BotStore(
+                    bot_id=bot.id,
+                    brand=store.brand,
+                    affiliate_link=affiliate_links.get(store.brand),
+                )
+            )
         self.db.flush()
 
     def discount_products(self, brands: list[str], limit: int = 200) -> list:
@@ -95,8 +114,6 @@ class BotRepository:
             .all()
         )
     
- 
-
     def count_sents(self, brands: list[str], limit: int = 200) -> list:
         if not brands:
             return []
@@ -116,6 +133,52 @@ class BotRepository:
             bot.today_sent      = 0
             bot.last_reset_date = datetime.now(timezone.utc)
             self.db.flush()
+
+
+class BotScheduleRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_by_bot_id(self, bot_id: int) -> list[BotSchedule]:
+        return (
+            self.db.query(BotSchedule)
+            .filter(BotSchedule.bot_id == bot_id)
+            .order_by(BotSchedule.run_time.asc())
+            .all()
+        )
+
+
+class DeliveryJobRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_latest_for_bot(self, bot_id: int, limit: int = 10) -> list[DeliveryJob]:
+        return (
+            self.db.query(DeliveryJob)
+            .filter(DeliveryJob.bot_id == bot_id)
+            .order_by(DeliveryJob.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+
+    def count_pending(self, bot_id: int) -> int:
+        return (
+            self.db.query(DeliveryJob)
+            .filter(
+                DeliveryJob.bot_id == bot_id,
+                DeliveryJob.status.in_([DeliveryJobStatus.pending, DeliveryJobStatus.running]),
+            )
+            .count()
+        )
+
+
+class PendingChatRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def delete_by_google_id(self, google_id: str) -> None:
+        self.db.query(PendingChatId).filter(PendingChatId.google_id == google_id).delete()
+        self.db.flush()
 
 
 class ProductRepository:

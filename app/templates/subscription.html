@@ -77,6 +77,7 @@
 
         .text-gradient {
             background: linear-gradient(to right, #34D399, #10B981);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -439,7 +440,7 @@
 
                 if (!res.ok) {
                     const d = await res.json().catch(() => ({}));
-                    throw new Error(d.detail || 'Erro ao iniciar o pagamento. Tente novamente.');
+                    throw new Error(d.detail || d.error || 'Erro ao iniciar o pagamento. Tente novamente.');
                 }
 
                 const data = await res.json();

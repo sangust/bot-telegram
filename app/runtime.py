@@ -1,0 +1,26 @@
+import asyncio
+import os
+import subprocess
+
+import uvicorn
+
+from app.src.infrabackend.config import HOST, PORT, WORKER_POLL_SECONDS
+from app.src.services.delivery import run_worker_loop
+
+
+def main() -> None:
+    role = os.getenv("APP_ROLE", "web").strip().lower()
+
+    if role == "migrate":
+        subprocess.run(["alembic", "upgrade", "head"], check=True)
+        return
+
+    if role == "worker":
+        asyncio.run(run_worker_loop(WORKER_POLL_SECONDS))
+        return
+
+    uvicorn.run("app.api.main:app", host=HOST, port=PORT)
+
+
+if __name__ == "__main__":
+    main()

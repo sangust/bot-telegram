@@ -32,12 +32,8 @@ infra/credentials.json
 *.sqlite
 *.sqlite3
 
-alembic/
-app/data/alembic/
-
 # Docker
 Dockerfile
-.dockerignore
 
 # Docs / README
 README.md

@@ -446,20 +446,31 @@
 
         // ── Dados das Lojas ──────────────────────────────────────────────────
         const ML_TECH_CATEGORIES = {
-            "ML-Games":           "Games",
-            "ML-Celulares":       "Celulares",
-            "ML-Televisores":     "Televisores",
-            "ML-Notebooks":       "Notebooks",
-            "ML-TVs":             "TVs",
-            "ML-Fones":           "Fones",
-            "ML-Câmeras":         "Câmeras",
-            "ML-Tablets":         "Tablets",
-            "ML-Cameras":         "Cameras",
-            "ML-Computacao":      "Computação",
-            "ML-Audio":           "Áudio",
-            "ML-Cameras-Drones":  "Cameras e Drones",
-            "ML-Eletronicos":     "Eletrônicos",
-            "ML-Eletrodomestico": "Eletrodoméstico",
+            "ML-Monitor":        "Monitor",
+            "ML-Notebook":       "Notebook",
+            "ML-PC-Gamer":       "PC Gamer",
+            "ML-SSD":            "SSD",
+            "ML-Memória-RAM":    "Memória RAM",
+            "ML-Placa-de-Video": "Placa de Vídeo",
+            "ML-Processador":    "Processador",
+            "ML-Fonte-PC":       "Fonte PC",
+            "ML-Gabinete":       "Gabinete",
+            "ML-Teclado":        "Teclado",
+            "ML-Mouse":          "Mouse",
+            "ML-Headset":        "Headset",
+            "ML-Webcam":         "Webcam",
+            "ML-Mousepad":       "Mousepad",
+            "ML-Smartphone":     "Smartphone",
+            "ML-Tablet":         "Tablet",
+            "ML-Smartwatch":     "Smartwatch",
+            "ML-Fone-Bluetooth": "Fone Bluetooth",
+            "ML-Caixa-de-Som":   "Caixa de Som",
+            "ML-Camera-Digital": "Câmera Digital",
+            "ML-Camera-Seguranca":"Câmera Segurança",
+            "ML-Smart-TV":       "Smart TV",
+            "ML-Projetor":       "Projetor",
+            "ML-Roteador":       "Roteador",
+            "ML-Switch":         "Switch",
         };
 
         const STREETWEAR_STORES = [
@@ -566,7 +577,6 @@
 
         function getSelectedStoreNames() {
             const names = [];
-            if (document.getElementById('toggle-ml').checked) names.push('Mercado Livre');
             document.querySelectorAll('.store-cb:checked').forEach(cb => names.push(cb.value));
             return names;
         }
@@ -715,6 +725,7 @@
                 const val = input.value.trim();
                 if (val) affiliateLinks[input.dataset.store] = val;
             });
+            const affiliateLink = document.getElementById('affiliate_link')?.value?.trim() || null;
 
             btn.classList.add('btn-loading');
 
@@ -734,6 +745,7 @@
                     body:    JSON.stringify({
                         chat_id:          chatId,
                         brands:           selectedBrands,
+                        affiliate_link:   affiliateLink,
                         affiliate_links:  Object.keys(affiliateLinks).length > 0 ? affiliateLinks : null,
                         schedule_times:   scheduleTimes.length > 0 ? scheduleTimes : null,
                     }),
@@ -741,7 +753,7 @@
 
                 if (!res.ok) {
                     const d = await res.json().catch(() => ({}));
-                    throw new Error(d.detail || 'Erro ao salvar o robô. Tente novamente.');
+                    throw new Error(d.detail || d.error || 'Erro ao salvar o robô. Tente novamente.');
                 }
 
                 window.location.href = '/dashboard';

@@ -39,6 +39,13 @@ class StatusBot(str, enum.Enum):
     paused = "paused"
 
 
+class DeliveryJobStatus(str, enum.Enum):
+    pending   = "pending"
+    running   = "running"
+    succeeded = "succeeded"
+    failed    = "failed"
+
+
 class PaymentMethod(str, enum.Enum):
     pix  = "PIX"
     card = "CARD"
@@ -75,6 +82,7 @@ class BotStore(BASE):
 
     bot_id = Column(Integer, ForeignKey("bots.id", ondelete="CASCADE"), primary_key=True)
     brand  = Column(String,  ForeignKey("stores.brand", ondelete="CASCADE"), primary_key=True)
+    affiliate_link = Column(String(500), nullable=True)
 
     bot   = relationship("Bot",   back_populates="stores")
     store = relationship("Store", back_populates="bot_stores")
@@ -118,7 +126,7 @@ class MLProduct(BASE):
     category       = Column(String(50),  nullable=False, index=True)   # ex: ML-Celulares
     title          = Column(String(300), nullable=False)
     discount_price = Column(Numeric(10, 2), nullable=False)
-    full_price     = Column(Numeric(10, 2), nullable=False)
+    full_price     = Column(Numeric(10,  2), nullable=False)
     discount_pct   = Column(Numeric(5,  2), nullable=False)            # % pre-calculado
     image          = Column(String(500), nullable=True)
     link           = Column(Text, nullable=False)
@@ -163,6 +171,49 @@ class Bot(BASE):
 
     user       = relationship("User",     back_populates="bot")
     stores = relationship("BotStore", back_populates="bot", cascade="all, delete-orphan")
+    schedules  = relationship("BotSchedule", back_populates="bot", cascade="all, delete-orphan")
+    jobs       = relationship("DeliveryJob", back_populates="bot", cascade="all, delete-orphan")
+
+
+class BotSchedule(BASE):
+    __tablename__ = "bot_schedules"
+    __table_args__ = (
+        UniqueConstraint("bot_id", "run_time", name="uq_bot_schedule_time"),
+    )
+
+    id         = Column(Integer, primary_key=True)
+    bot_id      = Column(Integer, ForeignKey("bots.id", ondelete="CASCADE"), nullable=False, index=True)
+    run_time    = Column(Time(timezone=True), nullable=False)
+    created_at  = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at  = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+    bot         = relationship("Bot", back_populates="schedules")
+    jobs        = relationship("DeliveryJob", back_populates="schedule")
+
+
+class DeliveryJob(BASE):
+    __tablename__ = "delivery_jobs"
+    __table_args__ = (
+        Index("ix_delivery_jobs_status_run_at", "status", "run_at"),
+        UniqueConstraint("bot_id", "schedule_id", "run_at", name="uq_delivery_job_schedule_run"),
+    )
+
+    id           = Column(Integer, primary_key=True)
+    bot_id       = Column(Integer, ForeignKey("bots.id", ondelete="CASCADE"), nullable=False, index=True)
+    schedule_id  = Column(Integer, ForeignKey("bot_schedules.id", ondelete="SET NULL"), nullable=True, index=True)
+    status       = Column(Enum(DeliveryJobStatus), default=DeliveryJobStatus.pending, nullable=False)
+    run_at       = Column(DateTime(timezone=True), nullable=False, index=True)
+    started_at   = Column(DateTime(timezone=True), nullable=True)
+    finished_at  = Column(DateTime(timezone=True), nullable=True)
+    attempts     = Column(Integer, default=0, nullable=False)
+    max_attempts = Column(Integer, default=3, nullable=False)
+    sent_count   = Column(Integer, default=0, nullable=False)
+    last_error   = Column(Text, nullable=True)
+    created_at   = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at   = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+    bot         = relationship("Bot", back_populates="jobs")
+    schedule    = relationship("BotSchedule", back_populates="jobs")
 
 
 # ── Subscription ──────────────────────────────────────────────────────────────
@@ -216,5 +267,9 @@ class PendingChatId(BASE):
     __tablename__ = "pending_chat_ids"
 
     google_id  = Column(String, primary_key=True)
-    chat_id    = Column(String(100), nullable=False)
+    bot_token  = Column(String(300), nullable=False)
+    connection_code = Column(String(100), nullable=False, unique=True, index=True)
+    chat_id    = Column(String(100), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_now, nullable=False)
+    connected_at = Column(DateTime(timezone=True), nullable=True)

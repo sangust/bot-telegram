@@ -4,6 +4,18 @@ variable "location" {
   default     = "eastus"
 }
 
+variable "vm_size" {
+  description = "Tamanho da VM Azure para rodar web, workers e serviços auxiliares"
+  type        = string
+  default     = "Standard_D2as_v5"
+}
+
+variable "worker_count" {
+  description = "Quantidade de containers worker da aplicação"
+  type        = number
+  default     = 3
+}
+
 variable "ssh_public_key" {
   description = "Chave pública SSH para acesso à VM"
   type        = string

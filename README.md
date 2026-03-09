@@ -1,21 +1,23 @@
-# afiliBot — Alertas de Promoções de Streetwear no Telegram
+# afiliBot — SaaS de Bots de Promoções no Telegram
 
-Bot automatizado que monitora mais de **25 lojas de streetwear brasileiras**, detecta produtos em promoção e envia alertas diários direto no Telegram — com foto, preço original, preço atual e link.
+Plataforma para criar e operar bots de Telegram que monitoram lojas e categorias promocionais, aplicam links de afiliado e enviam alertas para grupos com execução previsível em produção.
 
 ---
 
 ## Como funciona
 
-O pipeline roda automaticamente todo dia via GitHub Actions:
+O fluxo operacional do projeto funciona assim:
 
 ```
-Coleta de produtos (Shopify API + Web Scraping)
+Usuário configura o bot pela aplicação web
         ↓
-Normalização e detecção de desconto
+Onboarding do Telegram gera uma conexão temporária persistida
         ↓
-Sincronização com Google BigQuery (cloud)
+Configuração do bot salva lojas, links de afiliado e horários no PostgreSQL
         ↓
-Envio das promoções via Telegram Bot
+Worker agenda e consome jobs persistidos em delivery_jobs
+        ↓
+Bot envia promoções para o grupo no Telegram
 ```
 
 ---
@@ -25,9 +27,12 @@ Envio das promoções via Telegram Bot
 - **Scraping multi-plataforma:** integra com a API nativa do Shopify (`/products.json`) e faz web scraping de lojas Nuvemshop via BeautifulSoup
 - **Detecção de desconto inteligente:** compara `price` vs `compare_at_price` de cada variante para identificar produtos realmente em promoção
 - **Envio automático no Telegram:** foto do produto + marca, nome, tamanhos disponíveis, preço original vs atual e link direto
-- **Persistência local + cloud:** SQLite para controle local, BigQuery para histórico e análise
-- **Pipeline diário automatizado:** GitHub Actions com `cron` roda todo dia à meia-noite, sem intervenção manual
-- **Landing page:** interface web em FastAPI para visualização dos produtos monitorados
+- **Links de afiliado por loja:** o bot pode usar link padrão e sobrescrita por store
+- **Agendamento persistente:** horários ficam em `bot_schedules` e execuções em `delivery_jobs`
+- **Onboarding estável do Telegram:** conexão do grupo é persistida em `pending_chat_ids`
+- **Webhook estável por alias:** URLs públicas não expõem o token bruto do bot
+- **Marketplace integrado:** categorias do Mercado Livre podem ser usadas como fontes válidas do bot
+- **Aplicação web:** FastAPI + Jinja para onboarding, dashboard, autenticação e assinatura
 
 ---
 
@@ -35,11 +40,12 @@ Envio das promoções via Telegram Bot
 
 | Camada | Tecnologias |
 |---|---|
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy, SQLite |
+| **Backend** | Python 3.12, FastAPI, SQLAlchemy, Alembic, PostgreSQL |
 | **Scraping** | httpx, BeautifulSoup, Shopify API |
 | **Bot** | python-telegram-bot |
-| **Cloud / Dados** | Google BigQuery, GCP Compute Engine, pandas |
-| **Infra** | Docker, Terraform, GitHub Actions (CI/CD) |
+| **Auth / Sessão** | Google OAuth, Starlette SessionMiddleware |
+| **Pagamentos** | AbacatePay |
+| **Infra** | Docker, Terraform, Azure VM, Nginx, Certbot, GitHub Actions |
 
 ---
 
@@ -47,24 +53,34 @@ Envio das promoções via Telegram Bot
 
 ```
 app/
-├── main.py                  # Entrypoint — orquestra extração, sync e envio
-├── api/                     # FastAPI — landing page de produtos
+├── api/
+│   ├── main.py              # FastAPI + healthcheck + sessões
 │   └── routes/
+│       ├── auth.py
+│       ├── createbot.py     # Onboarding, webhook Telegram e setup do bot
+│       ├── dashboard.py
+│       └── subscription.py
+├── runtime.py               # Entrypoint por papel: web, worker e migrate
 ├── src/
 │   ├── domain/
-│   │   └── models.py        # Modelo ORM (SQLAlchemy)
+│   │   └── models.py        # Bot, BotSchedule, DeliveryJob, PendingChatId
 │   ├── infrabackend/
-│   │   ├── config.py        # URLs das lojas monitoradas
-│   │   ├── database.py      # Conexão SQLite
-│   │   ├── repository.py    # Repositórios local e cloud (BigQuery)
-│   │   └── schemas.py       # Schema Pydantic para validação
+│   │   ├── config.py        # Ambiente, aliases de token e parâmetros operacionais
+│   │   ├── database.py      # Engine SQLAlchemy e healthcheck do banco
+│   │   ├── repository.py    # Repositórios do domínio e fila persistida
+│   │   └── schemas.py
 │   └── services/
 │       ├── bot.py           # Lógica de envio Telegram
-│       └── extract.py       # Extração Shopify + Nuvemshop
+│       ├── delivery.py      # Scheduler, worker, webhook e onboarding persistido
+│       ├── extract.py
+│       └── mlExtract.py
+app/data/alembic/
+├── env.py
+└── versions/
 infra/
-├── main.tf                  # Terraform — VM no GCP (e2-micro, Debian 12)
+├── main.tf                  # Terraform da VM Azure
 ├── variables.tf
-└── startup.sh
+└── startup.sh               # Sobe banco, migrate, web, worker, Nginx e Certbot
 ```
 
 ---
@@ -79,33 +95,39 @@ infra/
 
 ## Rodando localmente
 
-**Pré-requisitos:** Python 3.12+, Poetry, conta GCP com BigQuery habilitado
+**Pré-requisitos:** Python 3.12+, Poetry e PostgreSQL disponível.
 
-```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/bot-telegram-development
-cd bot-telegram-development
+**Variáveis mínimas de ambiente:**
 
-# Instale as dependências
-poetry install
-
-# Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o .env com seus tokens
-```
-
-**.env necessário:**
 ```env
-BOT_TOKEN=seu_token_do_botfather
-CHAT_ID=id_do_seu_canal_ou_grupo
+DATABASE_URL=postgresql+psycopg2://afilibot:senha@localhost:5432/afilibot
+SECRET_KEY=uma_chave_forte
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+BASE_URL=http://localhost:8000
+BOT_TOKEN_1=...
+BOT_TOKEN_2=...
+BOT_TOKEN_3=...
+ABACATEPAY_API_KEY=...
+ABACATEPAY_API_URL=https://api.abacatepay.com/v1
+ABACATEPAY_WEBHOOK_SECRET=...
+APP_ENV=development
+APP_TIMEZONE=America/Sao_Paulo
 ```
 
-```bash
-# Execute o pipeline completo
-poetry run python -m app.main
+**Subida local sugerida:**
 
-# Ou suba a API
+```bash
+poetry install
+poetry run alembic upgrade head
 poetry run uvicorn app.api.main:app --reload
+```
+
+Para rodar o worker localmente:
+
+```bash
+APP_ROLE=worker poetry run python -m app.runtime
 ```
 
 ---
@@ -115,20 +137,26 @@ poetry run uvicorn app.api.main:app --reload
 ### Docker
 
 ```bash
-docker build -t garimpo-bot .
-docker run --env-file .env garimpo-bot
+docker build -t afilibot .
+docker run --rm --env-file .env -e APP_ROLE=migrate afilibot
+docker run -d --env-file .env -e APP_ROLE=web -p 8000:8000 afilibot
+docker run -d --env-file .env -e APP_ROLE=worker afilibot
 ```
 
-### GCP com Terraform
+A mesma imagem suporta três papéis:
+
+- **`migrate`**
+- **`web`**
+- **`worker`**
+
+### Azure com Terraform
 
 ```bash
-cd infra
-# Adicione credentials.json da sua service account GCP
 terraform init
 terraform apply
 ```
 
-A VM é criada automaticamente no GCP (e2-micro) com firewall configurado nas portas 80 e 8000.
+A infraestrutura sobe uma VM Linux com Docker, Postgres, Nginx e Certbot. O `startup.sh` executa migrations antes de iniciar `web` e `worker`.
 
 ---
 
@@ -136,9 +164,10 @@ A VM é criada automaticamente no GCP (e2-micro) com firewall configurado nas po
 
 O workflow `envios.yml` roda via GitHub Actions:
 
-- **Trigger:** push na `main` ou automaticamente todo dia às 00:00 (UTC) via cron
-- **Secrets necessários:** `BOT_TOKEN`, `CHAT_ID`, `GCP_SA_KEY`
-- Após execução, o banco SQLite local é atualizado e commitado automaticamente
+- **Trigger:** execução manual
+- **Build:** login no Docker Hub, build da imagem e push da tag `latest`
+- **Deploy:** `terraform apply` com secrets de Azure, banco, OAuth, pagamento e bots do Telegram
+- **Resultado:** a VM baixa a imagem nova, executa migration e sobe `web` + `worker`
 
 ---
 
