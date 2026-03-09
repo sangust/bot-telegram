@@ -72,6 +72,88 @@ jobs:
         working-directory: infra
         run: terraform init
 
+      - name: Terraform Import Existing Azure Resources
+        working-directory: infra
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          import_if_in_state() {
+            local address="$1"
+            if terraform state show "$address" >/dev/null 2>&1; then
+              echo "Resource already in Terraform state: $address"
+              return 0
+            fi
+            return 1
+          }
+
+          import_if_exists() {
+            local address="$1"
+            local id="$2"
+
+            if import_if_in_state "$address"; then
+              return 0
+            fi
+
+            if az resource show --ids "$id" >/dev/null 2>&1; then
+              echo "Importing existing resource into Terraform state: $address"
+              terraform import "$address" "$id"
+            else
+              echo "Resource not found in Azure, skipping import: $address"
+            fi
+          }
+
+          SUBSCRIPTION_ID="$ARM_SUBSCRIPTION_ID"
+          RESOURCE_GROUP_NAME="afilibot"
+
+          if ! import_if_in_state "azurerm_resource_group.afilibot"; then
+            if [ "$(az group exists --name "$RESOURCE_GROUP_NAME")" = "true" ]; then
+              echo "Importing existing resource group into Terraform state"
+              terraform import \
+                azurerm_resource_group.afilibot \
+                "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}"
+            else
+              echo "Resource group not found in Azure, skipping import"
+            fi
+          fi
+
+          import_if_exists \
+            "azurerm_public_ip.afilibot" \
+            "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/publicIPAddresses/afilibot-ip"
+
+          import_if_exists \
+            "azurerm_virtual_network.afilibot" \
+            "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/virtualNetworks/afilibot-vnet"
+
+          import_if_exists \
+            "azurerm_subnet.afilibot" \
+            "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/virtualNetworks/afilibot-vnet/subnets/afilibot-subnet"
+
+          import_if_exists \
+            "azurerm_network_security_group.afilibot" \
+            "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/networkSecurityGroups/afilibot-nsg"
+
+          import_if_exists \
+            "azurerm_network_interface.afilibot" \
+            "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/networkInterfaces/afilibot-nic"
+
+          if ! import_if_in_state "azurerm_network_interface_security_group_association.afilibot"; then
+            NIC_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/networkInterfaces/afilibot-nic"
+            NSG_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Network/networkSecurityGroups/afilibot-nsg"
+            if az resource show --ids "$NIC_ID" >/dev/null 2>&1 && az resource show --ids "$NSG_ID" >/dev/null 2>&1; then
+              echo "Importing existing NIC/NSG association into Terraform state"
+              terraform import \
+                azurerm_network_interface_security_group_association.afilibot \
+                "${NIC_ID}|${NSG_ID}"
+            else
+              echo "NIC/NSG association dependencies not found in Azure, skipping import"
+            fi
+          fi
+
+          import_if_exists \
+            "azurerm_linux_virtual_machine.afilibot" \
+            "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Compute/virtualMachines/afilibot"
+
       - name: Terraform Validate
         working-directory: infra
         run: terraform validate
