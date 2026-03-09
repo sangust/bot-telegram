@@ -58,9 +58,9 @@ class BotRepository:
         Substitui todas as lojas do bot pelas novas.
         Deleta os BotStore existentes e recria com brand como FK.
         """
-        self.db.query(BotStore).filter(BotStore.user_id_bot == bot.user_id).delete()
+        self.db.query(BotStore).filter(BotStore.bot_id == bot.id).delete()
         for store in stores:
-            self.db.add(BotStore(user_id_bot=bot.user_id, brand=store.brand))
+            self.db.add(BotStore(bot_id=bot.id, brand=store.brand))
         self.db.flush()
 
     def discount_products(self, brands: list[str], limit: int = 200) -> list:

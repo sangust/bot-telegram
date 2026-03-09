@@ -3,405 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar | afilibot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <title>Acessar Painel | afilibot</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuração de Cores Customizadas e Animações no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B1120',
+                            card: '#111827',
+                            primary: '#10B981',
+                            hover: '#059669',
+                            accent: '#6366F1',
+                            purple: '#8B5CF6',
+                        }
+                    },
+                    animation: {
+                        'float-1': 'float 6s ease-in-out infinite',
+                        'float-2': 'float 7s ease-in-out 1.5s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:        #020617;
-            --surface:   #0f172a;
-            --border:    rgba(51, 65, 85, 0.6);
-            --orange:    #f97316;
-            --orange-dim:#7c3512;
-            --text:      #f1f5f9;
-            --muted:     #64748b;
-            --subtle:    #1e293b;
-        }
-
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100svh;
-            display: grid;
-            place-items: center;
-            overflow: hidden;
+            background-color: #0B1120;
+            color: #F3F4F6;
+            scroll-behavior: smooth;
         }
 
-        /* ── Fundo animado ── */
-        .bg-layer {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
+        .bg-fx-container {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+        }
+        .glow-bg {
+            position: absolute; width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(11,17,32,0) 70%);
+            top: -200px; left: -200px;
+        }
+        .glow-bg-2 {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(11,17,32,0) 70%);
+            bottom: -100px; right: -100px;
+        }
+        
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, transparent, black, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
         }
 
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.18;
-            animation: drift 14s ease-in-out infinite alternate;
-        }
-        .orb-1 { width: 420px; height: 420px; background: var(--orange); top: -120px; left: -80px; animation-duration: 16s; }
-        .orb-2 { width: 300px; height: 300px; background: #7c3ded; bottom: -80px; right: -60px; animation-duration: 12s; animation-delay: -5s; }
-        .orb-3 { width: 200px; height: 200px; background: var(--orange); bottom: 20%; left: 30%; opacity: 0.08; animation-duration: 18s; animation-delay: -9s; }
-
-        @keyframes drift {
-            from { transform: translate(0, 0) scale(1); }
-            to   { transform: translate(30px, 20px) scale(1.08); }
-        }
-
-        /* Grade de fundo sutil */
-        .grid-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-            background-size: 48px 48px;
-        }
-
-        /* ── Card ── */
-        .card-wrap {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            max-width: 420px;
-            padding: 1.5rem;
-        }
-
-        .card {
-            background: rgba(15, 23, 42, 0.75);
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 2.75rem 2.5rem;
-            box-shadow:
-                0 0 0 1px rgba(249,115,22,0.06),
-                0 32px 64px rgba(0,0,0,0.5),
-                inset 0 1px 0 rgba(255,255,255,0.04);
-            animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        @keyframes rise {
-            from { opacity: 0; transform: translateY(24px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
+        .text-gradient {
+            background: linear-gradient(to right, #34D399, #10B981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        /* ── Logo ── */
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            justify-content: center;
-            margin-bottom: 2.25rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 38px; height: 38px;
-            background: var(--orange);
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-            box-shadow: 0 0 20px rgba(249,115,22,0.35);
-            flex-shrink: 0;
-        }
-
-        .logo-icon svg { width: 20px; height: 20px; color: #fff; }
-
-        .logo-text {
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            color: #fff;
-        }
-
-        /* ── Cabeçalho ── */
-        .header { text-align: center; margin-bottom: 2rem; }
-
-        .header h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: #fff;
-            line-height: 1.2;
-        }
-
-        .header p {
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        /* ── Social proof ── */
-        .social-proof {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .avatars {
-            display: flex;
-        }
-
-        .avatar {
-            width: 26px; height: 26px;
-            border-radius: 50%;
-            border: 2px solid var(--surface);
-            margin-left: -8px;
-            font-size: 0.6rem;
-            font-weight: 700;
-            display: grid;
-            place-items: center;
-            background: var(--subtle);
-            color: var(--muted);
-        }
-        .avatar:first-child { margin-left: 0; }
-        .avatar-1 { background: #1d4ed8; }
-        .avatar-2 { background: #7c3aed; }
-        .avatar-3 { background: #0f766e; }
-        .avatar-4 { background: var(--orange-dim); }
-
-        .social-text {
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-        .social-text strong { color: var(--text); font-weight: 600; }
-
-        /* ── Divisor ── */
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.75rem;
-        }
-        .divider-line {
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-        .divider-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        /* ── Botão Google ── */
-        .btn-google {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.875rem;
-            width: 100%;
-            padding: 0.9rem 1.5rem;
-            background: #fff;
-            color: #1e293b;
-            font-family: inherit;
-            font-size: 0.95rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        .btn-loading { pointer-events: none; opacity: 0.8; }
+        .spinner { animation: spin 1s linear infinite; display: none; }
+        .btn-loading .spinner { display: inline-block; }
+        .btn-loading .btn-text, .btn-loading .btn-icon, .btn-loading .google-logo { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .btn-google-wrap {
             position: relative;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            padding: 1px;
             overflow: hidden;
         }
-
-        .btn-google::before {
+        .btn-google-wrap::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 100%);
-            opacity: 0;
-            transition: opacity 0.2s;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
         }
-
-        .btn-google:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        .btn-google-wrap:hover::before {
+            transform: translateX(100%);
         }
-        .btn-google:hover::before { opacity: 1; }
-        .btn-google:active { transform: translateY(0); }
-
-        .btn-google.loading {
-            pointer-events: none;
-            background: #e2e8f0;
-        }
-
-        .google-logo {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        .btn-spinner {
-            display: none;
-            width: 20px; height: 20px;
-            border: 2.5px solid #cbd5e1;
-            border-top-color: #475569;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            flex-shrink: 0;
-        }
-        .btn-google.loading .btn-spinner { display: block; }
-        .btn-google.loading .google-logo { display: none; }
-        .btn-google.loading .btn-label { color: #94a3b8; }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ── Benefícios ── */
-        .benefits {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            margin-top: 1.75rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .benefit {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        .benefit-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--orange);
-            flex-shrink: 0;
-        }
-
-        /* ── Termos ── */
-        .terms {
-            margin-top: 1.5rem;
-            text-align: center;
-            font-size: 0.72rem;
-            color: var(--muted);
-            line-height: 1.6;
-        }
-        .terms a {
-            color: var(--orange);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .terms a:hover { text-decoration: underline; }
-
     </style>
 </head>
-<body>
+<body class="font-body antialiased flex flex-col min-h-screen">
 
-    <!-- Fundo -->
-    <div class="bg-layer">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+    <div class="bg-fx-container">
+        <div class="glow-bg"></div>
+        <div class="glow-bg-2"></div>
+        <div class="absolute inset-0 bg-grid opacity-60"></div>
     </div>
-    <div class="grid-overlay"></div>
 
-    <!-- Card principal -->
-    <div class="card-wrap">
-        <div class="card">
-
-            <!-- Logo -->
-            <a href="/" class="logo">
-                <div class="logo-icon">
-                    <!-- Rocket icon SVG inline -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
-                        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-                        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-                        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
-                    </svg>
+    <nav class="w-full z-50 py-6 absolute top-0">
+        <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-brand-primary to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:scale-105 transition">
+                    <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
                 </div>
-                <span class="logo-text">afilibot</span>
+                <span class="font-display font-extrabold text-2xl tracking-tight text-white">afilibot</span>
             </a>
-
-            <!-- Cabeçalho -->
-            <div class="header">
-                <h1>Acesse sua conta</h1>
-                <p>Automatize promoções e aumente<br>suas comissões de afiliado.</p>
-            </div>
-
-            <!-- Social proof -->
-            <div class="social-proof">
-                <div class="avatars">
-                    <div class="avatar avatar-1">GS</div>
-                    <div class="avatar avatar-2">ML</div>
-                    <div class="avatar avatar-3">RP</div>
-                    <div class="avatar avatar-4">+</div>
-                </div>
-                <span class="social-text"><strong>+120 afiliados</strong> já automatizando</span>
-            </div>
-
-            <!-- Divisor -->
-            <div class="divider">
-                <div class="divider-line"></div>
-                <span class="divider-label">continuar com</span>
-                <div class="divider-line"></div>
-            </div>
-
-            <!-- Botão Google -->
-            <a href="/auth/login" id="google-btn" class="btn-google" onclick="handleLogin(this)">
-                <!-- Google logo SVG -->
-                <svg class="google-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                <div class="btn-spinner"></div>
-                <span class="btn-label">Entrar com Google</span>
+            
+            <a href="/" class="flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-white transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Página Inicial
             </a>
-
-            <!-- Benefícios -->
-            <div class="benefits">
-                <div class="benefit">
-                    <div class="benefit-dot"></div>
-                    <span>Monitora mais de 25 lojas de streetwear automaticamente</span>
-                </div>
-                <div class="benefit">
-                    <div class="benefit-dot"></div>
-                    <span>Envia promoções com seu link de afiliado no Telegram</span>
-                </div>
-                <div class="benefit">
-                    <div class="benefit-dot"></div>
-                    <span>Sem configuração técnica — pronto em minutos</span>
-                </div>
-            </div>
-
-            <!-- Termos -->
-            <p class="terms">
-                Ao continuar, você concorda com os
-                <a href="#">Termos de Uso</a> e a
-                <a href="#">Política de Privacidade</a> do afilibot.
-            </p>
-
         </div>
-    </div>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center px-4 sm:px-6 py-24">
+        
+        <div class="glass-card w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row overflow-hidden border-t border-brand-primary/20 relative z-10">
+            
+            <!-- LADO ESQUERDO: Acesso via Google -->
+            <div class="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center relative">
+                
+                <div class="mb-12 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full text-blue-400 text-xs font-bold uppercase tracking-widest mb-6">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        Acesso Seguro
+                    </div>
+                    <h1 class="font-display text-3xl sm:text-4xl font-extrabold text-white mb-4">Bem-vindo</h1>
+                    <p class="text-gray-400 text-sm sm:text-base leading-relaxed">
+                        Para garantir a máxima segurança dos seus dados e configurações, o acesso ao painel é feito <strong>exclusivamente</strong> através da sua conta Google.
+                    </p>
+                </div>
+
+                <div class="btn-google-wrap mb-8">
+                    <button type="button" id="btn-google" onclick="handleGoogleLogin(this)" class="w-full bg-white text-[#111827] font-bold text-lg py-4 rounded-2xl hover:bg-gray-100 transition duration-300 flex items-center justify-center gap-4 shadow-xl">
+                        <i data-lucide="loader-2" class="w-6 h-6 spinner text-[#111827]"></i>
+                        <svg class="google-logo w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span class="btn-text">Continuar com o Google</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-500">
+                        <i data-lucide="lock" class="w-4 h-4 text-gray-400"></i>
+                        Não postamos nada em seu nome.
+                    </div>
+                    <div class="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-500">
+                        <i data-lucide="shield" class="w-4 h-4 text-gray-400"></i>
+                        Acesso rápido e sem senhas para memorizar.
+                    </div>
+                </div>
+
+                <p class="text-center lg:text-left text-sm text-gray-500 mt-12 pt-8 border-t border-white/5">
+                    Ainda não automatizou suas vendas? <br class="sm:hidden" />
+                    <a href="/subscription" class="text-brand-primary font-semibold hover:underline">Veja nossos planos.</a>
+                </p>
+
+            </div>
+
+            <!-- LADO DIREITO: Contexto Visual -->
+            <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-brand-card to-[#1e1b4b] relative p-12 flex-col justify-center items-center border-l border-white/5">
+                
+                <div class="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none">
+                    <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand-primary/10 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 w-80 h-80 bg-brand-purple/10 rounded-full blur-3xl"></div>
+                </div>
+
+                <div class="relative z-10 text-center mb-12">
+                    <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-lg backdrop-blur-sm">
+                        <i data-lucide="bot" class="w-8 h-8 text-brand-primary"></i>
+                    </div>
+                    <h2 class="font-display text-3xl font-extrabold text-white mb-4">A automação não dorme.</h2>
+                    <p class="text-gray-400 text-sm max-w-sm mx-auto leading-relaxed">
+                        Enquanto você foca no que importa, seu exército de robôs continua publicando e gerando comissões nas maiores lojas do mercado.
+                    </p>
+                </div>
+
+                <div class="relative z-10 w-full max-w-sm space-y-4">
+                    
+                    <div class="bg-white/[0.03] backdrop-blur-md border border-white/10 p-4 rounded-2xl flex items-center gap-4 shadow-2xl animate-float-1">
+                        <div class="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
+                            <i data-lucide="check-check" class="w-5 h-5 text-brand-primary"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-white mb-0.5">Postagem Realizada</p>
+                            <p class="text-xs text-gray-400">Canal: Ofertas Streetwear</p>
+                        </div>
+                        <span class="text-[10px] text-gray-500 font-medium">Agora</span>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-brand-primary/10 to-transparent backdrop-blur-md border border-brand-primary/20 p-4 rounded-2xl flex items-center gap-4 shadow-2xl animate-float-2 ml-6">
+                        <div class="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center shrink-0 shadow-lg shadow-brand-primary/30">
+                            <i data-lucide="dollar-sign" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-white mb-0.5">Nova Venda Aprovada!</p>
+                            <p class="text-xs text-brand-primary font-semibold">Comissão de R$ 68,90</p>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-medium">Há 5 min</span>
+                    </div>
+
+                </div>
+
+                <div class="absolute bottom-8 left-0 w-full flex justify-center z-10">
+                    <div class="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/5 px-4 py-2 rounded-full">
+                        <div class="flex -space-x-2">
+                            <div class="w-6 h-6 rounded-full bg-blue-600 border border-brand-card flex items-center justify-center text-[8px] font-bold text-white">JS</div>
+                            <div class="w-6 h-6 rounded-full bg-purple-600 border border-brand-card flex items-center justify-center text-[8px] font-bold text-white">MA</div>
+                            <div class="w-6 h-6 rounded-full bg-brand-primary border border-brand-card flex items-center justify-center text-[8px] font-bold text-brand-dark">+</div>
+                        </div>
+                        <p class="text-xs text-gray-300 font-medium">Junte-se a <strong class="text-white">400+</strong> afiliados</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
 
     <script>
-        function handleLogin(btn) {
-            btn.classList.add('loading');
-            // O href="/auth/login" já redireciona. 
-            // O loading fica ativo durante o redirect para o Google.
+        lucide.createIcons();
+
+        function handleGoogleLogin(btn) {
+            btn.classList.add('btn-loading');
+            // ROTA CORRETA: /auth/login (OAuth do Google via FastAPI)
+            window.location.href = "/auth/login";
         }
     </script>
 

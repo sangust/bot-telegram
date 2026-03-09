@@ -3,522 +3,460 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>afilibot | Automação para Afiliados</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:        #020617;
-            --surface:   #0f172a;
-            --border:    rgba(51, 65, 85, 0.6);
-            --orange:    #f97316;
-            --orange-dim:#7c3512;
-            --text:      #f1f5f9;
-            --muted:     #64748b;
-            --subtle:    #1e293b;
-        }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100svh;
-            overflow-x: hidden;
-        }
-
-        /* ── Fundo ── */
-        .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-        .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.14; animation: drift 14s ease-in-out infinite alternate; }
-        .orb-1 { width: 500px; height: 500px; background: var(--orange); top: -120px; left: -100px; animation-duration: 18s; }
-        .orb-2 { width: 340px; height: 340px; background: #7c3ded; bottom: 10%; right: -80px; animation-duration: 13s; animation-delay: -6s; }
-        .orb-3 { width: 220px; height: 220px; background: var(--orange); top: 50%; left: 40%; opacity: 0.06; animation-duration: 20s; animation-delay: -10s; }
-        @keyframes drift { from{transform:translate(0,0) scale(1);} to{transform:translate(28px,18px) scale(1.08);} }
-
-        .grid-overlay {
-            position: fixed; inset: 0; z-index: 0;
-            background-image: linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-            background-size: 48px 48px;
-        }
-
-        /* ── Nav ── */
-        nav {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(2,6,23,0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-        }
-        .nav-inner {
-            max-width: 1100px; margin: 0 auto;
-            padding: 0 2rem;
-            height: 68px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .logo { display:flex; align-items:center; gap:.625rem; text-decoration:none; }
-        .logo-icon {
-            width:34px; height:34px; background:var(--orange); border-radius:9px;
-            display:grid; place-items:center;
-            box-shadow: 0 0 18px rgba(249,115,22,.35);
-        }
-        .logo-icon svg { width:18px; height:18px; color:#fff; }
-        .logo-text { font-size:1.4rem; font-weight:800; letter-spacing:-.04em; color:#fff; }
-
-        .btn-nav {
-            display:flex; align-items:center; gap:.5rem;
-            padding:.55rem 1.25rem;
-            background:var(--orange);
-            color:#fff; font-size:.85rem; font-weight:700;
-            border:none; border-radius:10px; cursor:pointer;
-            text-decoration:none;
-            transition:background .15s, transform .15s, box-shadow .15s;
-            box-shadow: 0 4px 14px rgba(249,115,22,.3);
-        }
-        .btn-nav:hover { background:#ea6d0e; transform:translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,.4); }
-
-        /* ── Hero ── */
-        .hero {
-            position:relative; z-index:10;
-            padding: 160px 2rem 100px;
-            max-width:1100px; margin:0 auto;
-            display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center;
-        }
-        @media(max-width:768px){ .hero{grid-template-columns:1fr; gap:3rem; padding-top:130px;} .mockup-wrap{display:none;} }
-
-        .pill {
-            display:inline-flex; align-items:center; gap:.5rem;
-            background:rgba(30,41,59,.8); border:1px solid rgba(51,65,85,.7);
-            padding:.35rem 1rem; border-radius:99px;
-            font-size:.72rem; font-weight:700; color:#94a3b8;
-            letter-spacing:.08em; text-transform:uppercase;
-            margin-bottom:1.5rem;
-        }
-        .pill-dot { width:7px; height:7px; background:#22c55e; border-radius:50%; animation:pulse 2s ease infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
-
-        .hero h1 {
-            font-size:clamp(2.4rem,4vw,3.5rem);
-            font-weight:800; letter-spacing:-.04em;
-            line-height:1.08; color:#fff; margin-bottom:1.25rem;
-        }
-        .grad { background:linear-gradient(to right,#fb923c,#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-
-        .hero p {
-            font-size:1.05rem; color:var(--muted); line-height:1.65;
-            max-width:480px; margin-bottom:2rem;
-        }
-
-        .cta-group { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
-        .btn-hero {
-            display:flex; align-items:center; gap:.5rem;
-            padding:.9rem 2rem;
-            background:var(--orange); color:#fff;
-            font-size:.95rem; font-weight:700;
-            border:none; border-radius:14px; cursor:pointer; text-decoration:none;
-            transition:all .15s;
-            box-shadow:0 8px 28px rgba(249,115,22,.3);
-        }
-        .btn-hero:hover { background:#ea6d0e; transform:translateY(-2px); box-shadow:0 12px 32px rgba(249,115,22,.4); }
-        .btn-hero svg { width:18px; height:18px; }
-
-        .social-proof { display:flex; align-items:center; gap:.6rem; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
-        .avatars { display:flex; }
-        .avatar { width:28px; height:28px; border-radius:50%; border:2px solid var(--bg); margin-left:-8px; font-size:.58rem; font-weight:700; display:grid; place-items:center; color:#fff; }
-        .avatar:first-child{margin-left:0;}
-        .av1{background:#1d4ed8;} .av2{background:#7c3aed;} .av3{background:#0f766e;} .av4{background:var(--orange-dim);}
-        .sp-text { font-size:.8rem; color:var(--muted); }
-        .sp-text strong { color:var(--text); font-weight:600; }
-
-        /* ── Telegram mockup ── */
-        .mockup-wrap { position:relative; }
-        .mockup-wrap::before { content:''; position:absolute; inset:-40px; background:rgba(249,115,22,.07); border-radius:50%; filter:blur(60px); pointer-events:none; }
-        .mockup-tag {
-            position:absolute; top:-18px; right:0; z-index:5;
-            background:rgba(15,23,42,.85); border:1px solid var(--border);
-            backdrop-filter:blur(12px);
-            padding:.35rem .9rem; border-radius:99px;
-            font-size:.72rem; color:var(--muted); font-weight:500;
-        }
-        .mockup-shell {
-            background:#1e293b; border:1px solid rgba(51,65,85,.7);
-            border-radius:2.5rem; padding:10px;
-            box-shadow:0 32px 80px rgba(0,0,0,.6);
-            position:relative; z-index:2;
-        }
-        .tg-app { background:#17212b; border-radius:2rem; height:480px; overflow:hidden; display:flex; flex-direction:column; }
-        .tg-header { background:#242f3d; padding:12px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(0,0,0,.2); flex-shrink:0; }
-        .tg-avatar { width:38px; height:38px; background:var(--orange); border-radius:50%; display:grid; place-items:center; flex-shrink:0; }
-        .tg-avatar svg { width:18px; height:18px; color:#fff; }
-        .tg-name { font-size:.8rem; font-weight:700; color:#fff; }
-        .tg-sub { font-size:.68rem; color:#64748b; }
-        .tg-body { flex:1; background:#0e1621; padding:14px; overflow:hidden; display:flex; flex-direction:column; gap:12px; }
-        .tg-date { align-self:center; background:rgba(0,0,0,.4); color:#64748b; font-size:.62rem; font-weight:700; padding:.25rem .75rem; border-radius:99px; }
-
-        .tg-msg { background:#182533; border:1px solid rgba(51,65,85,.35); border-radius:18px; padding:10px; max-width:90%; align-self:center; width:100%; }
-        .tg-img { background:rgba(51,65,85,.4); border-radius:12px; height:100px; display:grid; place-items:center; margin-bottom:8px; }
-        .tg-img svg { width:32px; height:32px; color:#475569; }
-        .tg-brand { font-size:.62rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:.08em; margin-bottom:3px; }
-        .tg-title { font-size:.72rem; font-weight:700; color:#e2e8f0; margin-bottom:6px; }
-        .tg-prices { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-        .tg-old { font-size:.68rem; color:#475569; text-decoration:line-through; }
-        .tg-new { font-size:1rem; font-weight:800; color:var(--orange); }
-        .tg-badge { background:rgba(249,115,22,.15); color:#fb923c; font-size:.58rem; font-weight:700; padding:.2rem .45rem; border-radius:6px; }
-        .tg-btn { background:var(--orange); color:#fff; text-align:center; padding:7px; border-radius:10px; font-size:.68rem; font-weight:700; }
-
-        .tg-msg-sm { background:#182533; border:1px solid rgba(51,65,85,.3); border-radius:18px; padding:10px; max-width:72%; align-self:center; opacity:.65; }
-        .tg-img-sm { background:rgba(51,65,85,.4); border-radius:10px; height:60px; display:grid; place-items:center; margin-bottom:6px; }
-        .tg-img-sm svg { width:22px; height:22px; color:#475569; }
-
-        /* ── Seções ── */
-        section { position:relative; z-index:10; padding:100px 2rem; }
-        .section-inner { max-width:1100px; margin:0 auto; }
-        .section-label { font-size:.72rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.75rem; }
-        .section-title { font-size:clamp(1.8rem,3vw,2.5rem); font-weight:800; letter-spacing:-.03em; color:#fff; margin-bottom:.75rem; }
-        .section-sub { font-size:.95rem; color:var(--muted); line-height:1.6; max-width:480px; }
-        .section-divider { border:none; border-top:1px solid var(--border); }
-
-        /* ── Cards de feature ── */
-        .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; margin-top:3.5rem; }
-        .feat-card {
-            background:rgba(15,23,42,.7); border:1px solid var(--border);
-            backdrop-filter:blur(12px); border-radius:20px; padding:2rem;
-            transition:transform .2s, border-color .2s;
-        }
-        .feat-card:hover { transform:translateY(-4px); border-color:rgba(249,115,22,.3); }
-        .feat-icon {
-            width:44px; height:44px; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2);
-            border-radius:12px; display:grid; place-items:center; margin-bottom:1.25rem;
-        }
-        .feat-icon svg { width:20px; height:20px; color:var(--orange); }
-        .feat-step { font-size:.68rem; font-weight:700; color:#334155; text-transform:uppercase; letter-spacing:.1em; margin-bottom:.4rem; }
-        .feat-card h3 { font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:.5rem; }
-        .feat-card p { font-size:.85rem; color:var(--muted); line-height:1.6; }
-
-        /* ── Lojas ── */
-        .stores-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:.75rem; margin-top:2.5rem; }
-        .store-tag {
-            background:rgba(15,23,42,.7); border:1px solid var(--border);
-            border-radius:12px; padding:.65rem 1rem;
-            font-size:.82rem; font-weight:600; color:#94a3b8;
-            text-align:center;
-            transition:border-color .15s, color .15s;
-        }
-        .store-tag:hover { border-color:rgba(249,115,22,.4); color:var(--text); }
-
-        /* ── Preços ── */
-        .pricing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; margin-top:3.5rem; max-width:700px; }
-        .plan-card {
-            background:rgba(15,23,42,.75); border:1px solid var(--border);
-            backdrop-filter:blur(12px); border-radius:24px; padding:2.5rem;
-            transition:transform .2s;
-        }
-        .plan-card:hover { transform:translateY(-5px); }
-        .plan-card.featured { background:var(--orange); border-color:transparent; box-shadow:0 20px 60px rgba(249,115,22,.35); position:relative; overflow:hidden; }
-        .plan-card.featured::before { content:''; position:absolute; top:-40px; right:-40px; width:130px; height:130px; background:rgba(255,255,255,.15); border-radius:50%; filter:blur(30px); }
-        .plan-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:1.5rem; }
-        .plan-card.featured .plan-label { color:rgba(255,255,255,.7); }
-        .plan-badge { display:inline-block; background:rgba(0,0,0,.2); color:#fff; font-size:.62rem; font-weight:800; padding:.2rem .7rem; border-radius:99px; text-transform:uppercase; letter-spacing:.08em; margin-left:.5rem; }
-        .plan-price { display:flex; align-items:flex-end; gap:.25rem; margin-bottom:.5rem; }
-        .plan-cur { font-size:.85rem; font-weight:700; color:var(--muted); margin-bottom:.4rem; }
-        .plan-card.featured .plan-cur { color:rgba(255,255,255,.7); }
-        .plan-num { font-size:3.2rem; font-weight:800; letter-spacing:-.04em; color:#fff; }
-        .plan-period { font-size:.8rem; color:var(--muted); margin-bottom:.25rem; }
-        .plan-card.featured .plan-period { color:rgba(255,255,255,.7); }
-        .plan-sub { font-size:.78rem; color:var(--muted); margin-bottom:2rem; }
-        .plan-card.featured .plan-sub { color:rgba(255,255,255,.8); }
-        .plan-features { list-style:none; display:flex; flex-direction:column; gap:.75rem; margin-bottom:2rem; }
-        .plan-features li { display:flex; align-items:center; gap:.6rem; font-size:.85rem; color:#94a3b8; }
-        .plan-card.featured .plan-features li { color:#fff; }
-        .plan-features li::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--orange); flex-shrink:0; }
-        .plan-card.featured .plan-features li::before { background:#fff; }
-        .plan-features li.accent { font-weight:700; }
-        .plan-features li.accent::before { background:#fcd34d; }
-        .btn-plan {
-            display:block; width:100%; padding:.85rem;
-            background:rgba(255,255,255,.08); color:#fff;
-            border:1px solid var(--border); border-radius:12px;
-            font-size:.9rem; font-weight:700; text-align:center; text-decoration:none;
-            cursor:pointer; transition:all .15s;
-        }
-        .btn-plan:hover { background:rgba(255,255,255,.14); }
-        .plan-card.featured .btn-plan { background:#000; border-color:transparent; box-shadow:0 4px 16px rgba(0,0,0,.3); }
-        .plan-card.featured .btn-plan:hover { background:#111; }
-
-        /* ── Footer ── */
-        footer {
-            position:relative; z-index:10;
-            border-top:1px solid var(--border);
-            padding:3rem 2rem;
-            text-align:center;
-        }
-        .footer-inner { max-width:1100px; margin:0 auto; }
-        .footer-links { display:flex; justify-content:center; gap:2rem; margin:1.25rem 0; }
-        .footer-links a { font-size:.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; text-decoration:none; transition:color .15s; }
-        .footer-links a:hover { color:var(--orange); }
-        .footer-copy { font-size:.7rem; color:#334155; text-transform:uppercase; letter-spacing:.12em; font-weight:700; }
-    </style>
-</head>
-<body>
-
-    <div class="bg-layer">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
-    <div class="grid-overlay"></div>
-
-    <!-- Nav -->
-    <nav>
-        <div class="nav-inner">
-            <a href="/" class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
-                        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-                        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
-                    </svg>
-                </div>
-                <span class="logo-text">afilibot</span>
-            </a>
-            <a href="#" id="nav-btn" class="btn-nav">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
-                <span id="nav-btn-text">Entrar</span>
-            </a>
-        </div>
-    </nav>
-
-    <!-- Hero -->
-    <div class="hero" style="position:relative;z-index:10;">
-        <div>
-            <div class="pill">
-                <span class="pill-dot"></span>
-                +25 lojas de streetwear monitoradas
-            </div>
-            <h1>Seu canal de ofertas no <span class="grad">piloto automático.</span></h1>
-            <p>O afilibot rastreia promoções em mais de 25 lojas e envia com o seu link de afiliado direto no Telegram — todo dia, sem você fazer nada.</p>
-            <div class="cta-group">
-                <a href="#" id="hero-cta" class="btn-hero">
-                    Começar agora
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </a>
-                <a href="/dashboard" id="hero-dashboard" class="btn-hero" style="display:none;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:var(--orange);box-shadow:none;">
-                    Ir para o Dashboard
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </a>
-            </div>
-            <div class="social-proof">
-                <div class="avatars">
-                    <div class="avatar av1">GS</div>
-                    <div class="avatar av2">ML</div>
-                    <div class="avatar av3">RP</div>
-                    <div class="avatar av4">+</div>
-                </div>
-                <span class="sp-text"><strong>+120 afiliados</strong> já automatizando</span>
-            </div>
-        </div>
-
-        <div class="mockup-wrap">
-            <div class="mockup-tag">exemplo — nicho streetwear</div>
-            <div class="mockup-shell">
-                <div class="tg-app">
-                    <div class="tg-header">
-                        <div class="tg-avatar">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-                        </div>
-                        <div>
-                            <div class="tg-name">promos TakeOff 🔥</div>
-                            <div class="tg-sub">12.4k membros</div>
-                        </div>
-                    </div>
-                    <div class="tg-body">
-                        <div class="tg-date">Hoje, 09:00</div>
-                        <div class="tg-msg">
-                            <div class="tg-img">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
-                            </div>
-                            <div class="tg-brand">TakeOff</div>
-                            <div class="tg-title">Camiseta Chaos Offwhite Tee — P/M/G</div>
-                            <div class="tg-prices">
-                                <span class="tg-old">R$ 249,90</span>
-                                <span class="tg-new">R$ 169,90</span>
-                                <span class="tg-badge">-32%</span>
-                            </div>
-                            <div class="tg-btn">🔗 Ver Oferta</div>
-                        </div>
-                        <div class="tg-msg-sm">
-                            <div class="tg-img-sm">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                            </div>
-                            <div class="tg-brand" style="color:#60a5fa">Pace</div>
-                            <div class="tg-title">Heatmap Workshirt</div>
-                            <div class="tg-prices"><span class="tg-old">R$ 449,90</span><span class="tg-new">R$ 319,90</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Como funciona -->
-    <hr class="section-divider" style="position:relative;z-index:10;max-width:1100px;margin:0 auto;">
-    <section>
-        <div class="section-inner">
-            <div class="section-label">Como funciona</div>
-            <div class="section-title">3 passos para automatizar</div>
-            <div class="section-sub">Configure uma vez — o bot trabalha por você todo dia.</div>
-            <div class="features-grid">
-                <div class="feat-card">
-                    <div class="feat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                    </div>
-                    <div class="feat-step">Passo 01</div>
-                    <h3>Conecte seu bot</h3>
-                    <p>Crie um bot no BotFather, adicione ao seu canal e cole o token e Chat ID no afilibot.</p>
-                </div>
-                <div class="feat-card">
-                    <div class="feat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                    </div>
-                    <div class="feat-step">Passo 02</div>
-                    <h3>Escolha as lojas</h3>
-                    <p>Selecione quais das +25 lojas de streetwear monitorar. Configuração em segundos.</p>
-                </div>
-                <div class="feat-card">
-                    <div class="feat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    </div>
-                    <div class="feat-step">Passo 03</div>
-                    <h3>Receba comissões</h3>
-                    <p>O bot detecta promoções reais, aplica seu link de afiliado e dispara no canal automaticamente.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Lojas -->
-    <hr class="section-divider" style="position:relative;z-index:10;max-width:1100px;margin:0 auto;">
-    <section>
-        <div class="section-inner">
-            <div class="section-label">Integrações</div>
-            <div class="section-title">+25 lojas monitoradas</div>
-            <div class="section-sub">Cobertura completa do mercado de streetwear brasileiro.</div>
-            <div class="stores-grid">
-                <div class="store-tag">Mad Enlatados</div><div class="store-tag">New</div><div class="store-tag">Piet</div>
-                <div class="store-tag">Pace</div><div class="store-tag">Carnan</div><div class="store-tag">1of1</div>
-                <div class="store-tag">EghoStudios</div><div class="store-tag">Sufgang</div><div class="store-tag">CienaLab</div>
-                <div class="store-tag">Anty</div><div class="store-tag">IceCompany</div><div class="store-tag">Brunxind</div>
-                <div class="store-tag">Overstreets</div><div class="store-tag">Basyc</div><div class="store-tag">Bussfly</div>
-                <div class="store-tag">Captive Club</div><div class="store-tag">Malan</div><div class="store-tag">ggar</div>
-                <div class="store-tag">Places Wo</div><div class="store-tag">Delafoe</div><div class="store-tag">SteetApparel</div>
-                <div class="store-tag">Wanted</div><div class="store-tag">YungCeo</div><div class="store-tag">Jet Company</div>
-                <div class="store-tag">Dest Studios</div><div class="store-tag">TakeOff</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Preços -->
-    <hr class="section-divider" style="position:relative;z-index:10;max-width:1100px;margin:0 auto;">
-    <section>
-        <div class="section-inner">
-            <div class="section-label">Planos</div>
-            <div class="section-title">Simples e acessível</div>
-            <div class="section-sub">Sem taxa de setup. Cancele quando quiser.</div>
-            <div class="pricing-grid">
-                <div class="plan-card">
-                    <div class="plan-label">Mensal</div>
-                    <div class="plan-price"><span class="plan-cur">R$</span><span class="plan-num">14<small style="font-size:1.6rem">,99</small></span></div>
-                    <div class="plan-period">/mês</div>
-                    <div class="plan-sub">Cancele quando quiser.</div>
-                    <ul class="plan-features">
-                        <li>1 canal no Telegram</li>
-                        <li>Até 10 lojas monitoradas</li>
-                        <li>Envios diários automáticos</li>
-                        <li>Link de afiliado customizado</li>
-                    </ul>
-                    <a href="#" class="btn-plan plan-btn">Começar agora</a>
-                </div>
-                <div class="plan-card featured">
-                    <div class="plan-label">Anual <span class="plan-badge">Recomendado</span></div>
-                    <div class="plan-price"><span class="plan-cur">R$</span><span class="plan-num">149<small style="font-size:1.6rem">,99</small></span></div>
-                    <div class="plan-period">/ano</div>
-                    <div class="plan-sub">R$ 12,50/mês — economize 2 meses</div>
-                    <ul class="plan-features">
-                        <li class="accent">Canais ilimitados</li>
-                        <li>Todas as 25+ lojas</li>
-                        <li>Envios ilimitados por dia</li>
-                        <li>Suporte prioritário</li>
-                    </ul>
-                    <a href="#" class="btn-plan plan-btn">Assinar anual 🚀</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="footer-inner">
-            <a href="/" class="logo" style="justify-content:center;margin-bottom:.75rem;">
-                <div class="logo-icon" style="width:28px;height:28px;border-radius:7px;">
-                    <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-                </div>
-                <span class="logo-text" style="font-size:1.1rem;">afilibot</span>
-            </a>
-            <div class="footer-links">
-                <a href="#">Privacidade</a>
-                <a href="#">Termos</a>
-                <a href="#" id="footer-login">Entrar</a>
-            </div>
-            <div class="footer-copy">© 2025 afilibot</div>
-        </div>
-    </footer>
-
-
+    <title>afilibot | Automação e Lucro para Afiliados</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script>
-        async function initNav() {
-            try {
-                const res = await fetch('/api/dashboard/me');
-                if (!res.ok) throw new Error('not authenticated');
-                const user = await res.json();
-                if (user.error) throw new Error('not authenticated');
-
-                // Usuário logado — verifica se tem plano
-                const subRes = await fetch('/api/subscription/status');
-                const sub = await subRes.json();
-                const hasActivePlan = sub.has_subscription && sub.status === 'active';
-
-                // Nav button → Dashboard
-                const navBtn = document.getElementById('nav-btn');
-                navBtn.href = '/dashboard';
-                document.getElementById('nav-btn-text').textContent = 'Dashboard';
-
-                // Hero buttons
-                document.getElementById('hero-cta').style.display = 'none';
-                document.getElementById('hero-dashboard').style.display = 'flex';
-
-                // Footer
-                document.getElementById('footer-login').href = '/dashboard';
-                document.getElementById('footer-login').textContent = 'Dashboard';
-
-                // Botões de plano
-                document.querySelectorAll('.plan-btn').forEach(btn => {
-                    btn.href = hasActivePlan ? '/dashboard' : '/subscription';
-                    btn.textContent = hasActivePlan ? 'Ir para Dashboard' : btn.textContent;
-                });
-
-            } catch (e) {
-                // Não logado — tudo aponta para /login
-                document.getElementById('nav-btn').href = '/login';
-                document.getElementById('hero-cta').href = '/login';
-                document.querySelectorAll('.plan-btn').forEach(btn => {
-                    btn.href = '/subscription';
-                });
-                document.getElementById('footer-login').href = '/login';
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B1120',
+                            card: '#111827',
+                            primary: '#10B981',
+                            hover: '#059669',
+                            accent: '#6366F1',
+                            purple: '#8B5CF6',
+                        }
+                    },
+                    animation: {
+                        'marquee': 'marquee 25s linear infinite',
+                        'float-1': 'float 6s ease-in-out infinite',
+                        'float-2': 'float 7s ease-in-out 1.5s infinite',
+                        'float-3': 'float 6.5s ease-in-out 3s infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        }
+                    }
+                }
             }
         }
+    </script>
 
-        initNav();
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            background-color: #0B1120;
+            color: #F3F4F6;
+            scroll-behavior: smooth;
+        }
+
+        .overflow-wrapper {
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .bg-fx-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .glow-bg {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(11,17,32,0) 70%);
+            top: -200px; right: -100px;
+        }
+        .glow-bg-2 {
+            position: absolute; width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(11,17,32,0) 70%);
+            bottom: -300px; left: -200px;
+        }
+        
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, transparent, black, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #34D399, #10B981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Animação do botão de suporte pulsando suavemente */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+        .whatsapp-btn {
+            animation: pulse-ring 2s infinite;
+        }
+    </style>
+</head>
+<body class="font-body antialiased relative">
+
+    <!-- Botão de Suporte Flutuante WhatsApp -->
+    <a href="https://wa.link/dhei38" target="_blank" rel="noopener noreferrer" 
+       class="whatsapp-btn fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] bg-[#25D366] hover:bg-[#20bd5a] text-white p-4 rounded-full shadow-2xl transition duration-300 group flex items-center justify-center"
+       title="Fale connosco no WhatsApp">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+        </svg>
+        <!-- Tooltip que aparece no hover (apenas em desktop) -->
+        <span class="absolute right-full mr-4 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-xl border border-white/10 hidden md:block">
+            Precisa de ajuda?
+            <!-- Setinha do tooltip -->
+            <svg class="absolute text-gray-900 h-2 w-full left-0 top-1/2 -mt-1 -mr-2" x="0px" y="0px" viewBox="0 0 255 255" xml:space="preserve" style="transform: translateX(100%) rotate(270deg);"><polygon class="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+        </span>
+    </a>
+
+    <div class="overflow-wrapper relative">
+        
+        <div class="bg-fx-container">
+            <div class="glow-bg"></div>
+            <div class="glow-bg-2"></div>
+            <div class="absolute inset-0 bg-grid opacity-50"></div>
+        </div>
+
+        <!-- NavBar -->
+        <nav class="fixed w-full z-50 glass-card border-b border-white/5 transition-all duration-300" id="navbar">
+            <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-primary to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:scale-105 transition">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="font-display font-extrabold text-2xl tracking-tight text-white">afilibot</span>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#solucao" class="text-sm font-medium text-gray-400 hover:text-white transition">A Solução</a>
+                    <a href="#lojas" class="text-sm font-medium text-gray-400 hover:text-white transition">Lojas Parceiras</a>
+                    <a href="#precos" class="text-sm font-medium text-gray-400 hover:text-white transition">Planos</a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <a href="/login" class="text-sm font-semibold text-gray-400 hover:text-white transition hidden md:block">Login</a>
+                    <a href="/dashboard" class="text-sm font-semibold text-gray-300 hover:text-white transition hidden md:block border border-white/10 px-4 py-2 rounded-full hover:border-white/30">Painel</a>
+                    <a href="/createbot" class="text-sm font-semibold text-white bg-brand-accent hover:bg-indigo-500 px-4 py-2 rounded-full transition hidden md:block shadow-lg shadow-brand-accent/20">Criar Bot</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-1">
+            
+            <!-- Hero -->
+            <section class="relative pt-40 pb-20 md:pt-48 md:pb-32">
+                <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+                    
+                    <div class="relative z-10 text-center lg:text-left">
+                        <div class="inline-flex items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 px-4 py-1.5 rounded-full text-brand-primary text-xs font-bold uppercase tracking-widest mb-6">
+                            <span class="w-2 h-2 bg-brand-primary rounded-full animate-pulse"></span>
+                            Versão 2.0 Liberada
+                        </div>
+                        
+                        <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6 text-white">
+                            Venda no automático. <br />
+                            <span class="text-gradient">Lucre enquanto dorme.</span>
+                        </h1>
+                        
+                        <p class="text-lg text-gray-400 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                            O <strong>afilibot</strong> é seu funcionário 24h. Ele encontra as melhores ofertas, aplica seu link de afiliado e posta direto no seu Telegram e WhatsApp. Transforme seu grupo em uma máquina de comissões.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                            <a href="/createbot" class="w-full sm:w-auto bg-brand-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-hover transition flex items-center justify-center gap-2 shadow-xl shadow-brand-primary/20 hover:scale-105">
+                                Criar meu Robô <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </a>
+                            <div class="flex items-center gap-4 text-sm font-medium text-gray-400 px-4 mt-4 sm:mt-0">
+                                <div class="flex -space-x-3">
+                                    <img class="w-10 h-10 rounded-full border-2 border-brand-dark object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Usuário feliz">
+                                    <img class="w-10 h-10 rounded-full border-2 border-brand-dark object-cover" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&q=80" alt="Usuário lucrando">
+                                    <img class="w-10 h-10 rounded-full border-2 border-brand-dark object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="Usuário afiliado">
+                                </div>
+                                <p>Junte-se a <strong>+400</strong> afiliados.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mockup Celular -->
+                    <div class="relative lg:h-[600px] w-full flex items-center justify-center mt-10 lg:mt-0">
+                        <div class="absolute inset-0 bg-brand-purple/20 blur-[100px] rounded-full z-0"></div>
+                        
+                        <div class="relative w-[290px] md:w-[320px] h-[600px] bg-gradient-to-br from-[#5b21b6] to-[#2e1065] rounded-[3.5rem] p-2.5 shadow-2xl border-[3px] border-[#4c1d95] transform -rotate-[4deg] hover:rotate-0 transition duration-500 ease-out z-10">
+                            <div class="relative w-full h-full bg-gradient-to-b from-[#3b0764] to-[#1e1b4b] rounded-[3rem] overflow-hidden flex flex-col items-center border border-black/20">
+                                <div class="w-24 h-6 bg-[#2e1065] rounded-b-3xl absolute top-0 z-20"></div>
+                                <div class="w-[115%] mt-20 flex flex-col gap-5 px-6 relative left-[-6%] z-20">
+                                    
+                                    <div class="bg-[#1e1b4b]/95 backdrop-blur-xl border border-[#8b5cf6]/30 p-4 rounded-2xl flex items-center gap-4 shadow-xl animate-float-1">
+                                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0">
+                                            <span class="text-[#6d28d9] font-display font-black text-2xl">a</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-center mb-0.5">
+                                                <p class="text-[13px] font-bold text-white">Nova venda aprovada!</p>
+                                                <p class="text-[10px] text-purple-300">agora</p>
+                                            </div>
+                                            <p class="text-[11px] text-purple-200">Venda no Mercado Livre - Tênis Nike</p>
+                                            <p class="text-xs text-[#10B981] font-bold mt-1">Sua comissão R$ 39,90!</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-[#1e1b4b]/95 backdrop-blur-xl border border-[#8b5cf6]/30 p-4 rounded-2xl flex items-center gap-4 shadow-xl animate-float-2 translate-x-3">
+                                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0">
+                                            <span class="text-[#6d28d9] font-display font-black text-2xl">a</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-center mb-0.5">
+                                                <p class="text-[13px] font-bold text-white">Nova venda aprovada!</p>
+                                                <p class="text-[10px] text-purple-300">agora</p>
+                                            </div>
+                                            <p class="text-[11px] text-purple-200">Venda na Shopee - Relógio Casio</p>
+                                            <p class="text-xs text-[#10B981] font-bold mt-1">Sua comissão R$ 22,50!</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-[#1e1b4b]/95 backdrop-blur-xl border border-[#8b5cf6]/30 p-4 rounded-2xl flex items-center gap-4 shadow-xl animate-float-3 -translate-x-2">
+                                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0">
+                                            <span class="text-[#6d28d9] font-display font-black text-2xl">a</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-center mb-0.5">
+                                                <p class="text-[13px] font-bold text-white">Nova venda aprovada!</p>
+                                                <p class="text-[10px] text-purple-300">agora</p>
+                                            </div>
+                                            <p class="text-[11px] text-purple-200">Venda na TakeOff - Camiseta Chaos</p>
+                                            <p class="text-xs text-[#10B981] font-bold mt-1">Sua comissão R$ 45,00!</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-brand-purple/20 rounded-full blur-3xl z-0"></div>
+                                <i data-lucide="circle-dollar-sign" class="absolute -bottom-10 -left-10 w-56 h-56 text-[#8b5cf6]/10 transform rotate-12 z-0"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Marquee Lojas -->
+            <section id="lojas" class="py-12 border-y border-white/5 bg-white/[0.02] relative">
+                <div class="max-w-7xl mx-auto px-6 text-center mb-8 relative z-20">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-widest">Integração oficial com as maiores lojas</p>
+                </div>
+                
+                <div class="relative flex overflow-hidden w-full max-w-7xl mx-auto">
+                    <div class="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#0B1120] to-transparent z-10"></div>
+                    <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#0B1120] to-transparent z-10"></div>
+                    
+                    <div class="flex min-w-full shrink-0 animate-marquee items-center justify-around gap-16 pr-16 opacity-60 hover:opacity-100 transition duration-500">
+                        <span class="font-display font-bold text-2xl text-white">Mercado Livre</span>
+                        <span class="font-display font-bold text-2xl text-white">Amazon</span>
+                        <span class="font-display font-bold text-2xl text-white">Shopee</span>
+                        <span class="font-display font-bold text-2xl text-white">TakeOff</span>
+                        <span class="font-display font-bold text-2xl text-white">Pace</span>
+                        <span class="font-display font-bold text-2xl text-white">Nike</span>
+                        <span class="font-display font-bold text-2xl text-white">Baw Clothing</span>
+                    </div>
+                    <div class="flex min-w-full shrink-0 animate-marquee items-center justify-around gap-16 pr-16 opacity-60 hover:opacity-100 transition duration-500" aria-hidden="true">
+                        <span class="font-display font-bold text-2xl text-white">Mercado Livre</span>
+                        <span class="font-display font-bold text-2xl text-white">Amazon</span>
+                        <span class="font-display font-bold text-2xl text-white">Shopee</span>
+                        <span class="font-display font-bold text-2xl text-white">TakeOff</span>
+                        <span class="font-display font-bold text-2xl text-white">Pace</span>
+                        <span class="font-display font-bold text-2xl text-white">Nike</span>
+                        <span class="font-display font-bold text-2xl text-white">Baw Clothing</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Como Funciona -->
+            <section id="solucao" class="py-24 md:py-32 relative">
+                <div class="max-w-7xl mx-auto px-6">
+                    <div class="text-center max-w-3xl mx-auto mb-20">
+                        <h2 class="font-display text-4xl md:text-5xl font-extrabold text-white mb-6">Trabalho duro para nós.<br/>Lucro passivo para você.</h2>
+                        <p class="text-lg text-gray-400">Esqueça a busca manual por cupons e links. Configurou uma vez, afilibot faz o resto para sempre.</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="glass-card p-10 rounded-3xl relative overflow-hidden group hover:border-brand-primary/50 transition duration-300">
+                            <div class="absolute top-0 right-0 text-9xl font-display font-black text-white/[0.03] -mt-8 -mr-8 group-hover:text-brand-primary/[0.05] transition">1</div>
+                            <div class="w-16 h-16 bg-brand-accent/10 rounded-2xl flex items-center justify-center text-brand-accent mb-8">
+                                <i data-lucide="link" class="w-8 h-8"></i>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-white mb-4">Insira seu ID</h3>
+                            <p class="text-gray-400 leading-relaxed">Conecte sua conta da Shopee, Mercado Livre ou lojas independentes de moda e streetwear em nosso painel seguro.</p>
+                        </div>
+
+                        <div class="glass-card p-10 rounded-3xl relative overflow-hidden group hover:border-brand-primary/50 transition duration-300">
+                            <div class="absolute top-0 right-0 text-9xl font-display font-black text-white/[0.03] -mt-8 -mr-8 group-hover:text-brand-primary/[0.05] transition">2</div>
+                            <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 mb-8">
+                                <i data-lucide="radar" class="w-8 h-8"></i>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-white mb-4">O Bot Rastreia</h3>
+                            <p class="text-gray-400 leading-relaxed">Nossa IA monitora os sites 24h por dia. Achou um produto em alta com desconto? Ele capta a imagem e o preço.</p>
+                        </div>
+
+                        <div class="glass-card p-10 rounded-3xl relative overflow-hidden group hover:border-brand-primary/50 transition duration-300 border-brand-primary/20">
+                            <div class="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition"></div>
+                            <div class="absolute top-0 right-0 text-9xl font-display font-black text-white/[0.03] -mt-8 -mr-8 group-hover:text-brand-primary/[0.05] transition">3</div>
+                            <div class="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary mb-8">
+                                <i data-lucide="send" class="w-8 h-8"></i>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-white mb-4">Disparo Automático</h3>
+                            <p class="text-gray-400 leading-relaxed">A oferta é enviada no seu grupo (Telegram ou WhatsApp) já com o <strong>seu link de afiliado gerado</strong>. Eles compram, você recebe.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Visual -->
+            <section class="py-20 relative bg-brand-card/50 border-y border-white/5 overflow-hidden">
+                <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
+                    <div class="order-2 lg:order-1 relative">
+                        <div class="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full z-0"></div>
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80" alt="Resultados Financeiros Afilibot" class="rounded-[2rem] relative z-10 border border-white/10 shadow-2xl">
+                    </div>
+                    
+                    <div class="order-1 lg:order-2 relative z-10">
+                        <div class="flex items-center gap-3 mb-6 text-brand-primary">
+                            <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                            <span class="font-bold tracking-widest uppercase text-sm">Escalabilidade Real</span>
+                        </div>
+                        <h2 class="font-display text-4xl font-extrabold text-white mb-6">Tenha controle total sobre suas comissões.</h2>
+                        <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                            Acompanhe em tempo real quais produtos estão sendo postados, quantos cliques seus links receberam e pause ou inicie campanhas com 1 clique no nosso painel.
+                        </p>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 bg-brand-primary/20 p-1 rounded text-brand-primary"><i data-lucide="check" class="w-4 h-4"></i></div>
+                                <span class="text-gray-300">Mineração inteligente que evita produtos sem estoque.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 bg-brand-primary/20 p-1 rounded text-brand-primary"><i data-lucide="check" class="w-4 h-4"></i></div>
+                                <span class="text-gray-300">Integração super rápida via BotFather do Telegram.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 bg-brand-primary/20 p-1 rounded text-brand-primary"><i data-lucide="check" class="w-4 h-4"></i></div>
+                                <span class="text-gray-300">Em breve: Disparos direto em grupos de WhatsApp.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing -->
+            <section id="precos" class="py-24 md:py-32 relative">
+                <div class="max-w-7xl mx-auto px-6">
+                    <div class="text-center max-w-2xl mx-auto mb-20">
+                        <h2 class="font-display text-4xl md:text-5xl font-extrabold text-white mb-6">O investimento se paga com <span class="text-brand-primary">1 venda</span>.</h2>
+                        <p class="text-lg text-gray-400">Escolha o plano que melhor atende ao tamanho da sua comunidade. Cancele quando quiser, sem taxas escondidas.</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        <div class="glass-card p-10 rounded-[2.5rem] border border-white/5 hover:border-gray-600 transition duration-300 flex flex-col">
+                            <h3 class="font-display text-2xl font-bold text-white mb-2">Iniciante</h3>
+                            <p class="text-gray-400 text-sm mb-8">Para quem está começando o primeiro grupo.</p>
+                            
+                            <div class="flex items-baseline gap-2 mb-8">
+                                <span class="text-2xl font-bold text-gray-500">R$</span>
+                                <span class="font-display text-6xl font-black text-white tracking-tight">14<span class="text-3xl">,99</span></span>
+                                <span class="text-gray-500">/mês</span>
+                            </div>
+
+                            <ul class="space-y-4 mb-10 flex-1">
+                                <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-500"></i> 1 Canal no Telegram</li>
+                                <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-500"></i> Até 5 Lojas ativas</li>
+                                <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-500"></i> Disparos Ilimitados</li>
+                            </ul>
+
+                            <a href="/subscription" class="w-full py-4 rounded-xl bg-gray-800 text-white font-bold text-center hover:bg-gray-700 transition">Assinar Mensal</a>
+                        </div>
+
+                        <div class="bg-brand-primary p-10 rounded-[2.5rem] shadow-2xl shadow-brand-primary/20 relative flex flex-col transform md:-translate-y-4 border border-brand-primary">
+                            <div class="absolute top-0 right-0 bg-black text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-[2.5rem] uppercase tracking-wider">
+                                Mais Lucrativo
+                            </div>
+                            
+                            <h3 class="font-display text-2xl font-bold text-white mb-2">Profissional</h3>
+                            <p class="text-emerald-100 text-sm mb-8">Escale seus ganhos em múltiplos canais.</p>
+                            
+                            <div class="flex items-baseline gap-2 mb-8">
+                                <span class="text-2xl font-bold text-emerald-200">R$</span>
+                                <span class="font-display text-6xl font-black text-white tracking-tight">149<span class="text-3xl">,99</span></span>
+                                <span class="text-emerald-200">/ano</span>
+                            </div>
+
+                            <ul class="space-y-4 mb-10 flex-1">
+                                <li class="flex items-center gap-3 text-white font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-white"></i> Canais ilimitados</li>
+                                <li class="flex items-center gap-3 text-white font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-white"></i> Todas as 25+ lojas</li>
+                                <li class="flex items-center gap-3 text-white font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-white"></i> Filtro de Cupons Exclusivo</li>
+                                <li class="flex items-center gap-3 text-white font-medium"><i data-lucide="check-circle-2" class="w-5 h-5 text-white"></i> Suporte prioritário via WhatsApp</li>
+                            </ul>
+
+                            <a href="/subscription" class="w-full py-4 rounded-xl bg-white text-brand-dark font-black text-center hover:bg-gray-100 transition shadow-lg">Assinar Anual (Poupe 2 meses)</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-white/5 bg-brand-card w-full mt-auto relative z-20">
+            <div class="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <a href="/" class="flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-5 h-5 text-brand-primary"></i>
+                    <span class="font-display font-extrabold text-xl text-white">afilibot</span>
+                </a>
+                
+                <div class="flex items-center gap-6 text-sm text-gray-400 font-medium">
+                    <a href="#" class="hover:text-brand-primary transition">Privacidade</a>
+                    <a href="#" class="hover:text-brand-primary transition">Termos de Uso</a>
+                    <a href="/login" class="hover:text-brand-primary transition">Entrar na Conta</a>
+                </div>
+                
+                <p class="text-sm text-gray-500">© 2026 afilibot. Todos os direitos reservados.</p>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('bg-[#0B1120]/90', 'backdrop-blur-xl', 'shadow-lg');
+            } else {
+                nav.classList.remove('bg-[#0B1120]/90', 'backdrop-blur-xl', 'shadow-lg');
+            }
+        });
     </script>
 </body>
 </html>

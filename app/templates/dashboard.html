@@ -3,376 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | afilibot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --bg:      #020617;
-            --surface: #0f172a;
-            --border:  rgba(51,65,85,0.6);
-            --orange:  #f97316;
-            --text:    #f1f5f9;
-            --muted:   #64748b;
-            --subtle:  #1e293b;
+    <title>Painel de Inteligência | afilibot</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B1120',
+                            card: '#111827',
+                            primary: '#10B981',
+                            hover: '#059669',
+                            accent: '#6366F1',
+                            purple: '#8B5CF6',
+                        }
+                    }
+                }
+            }
         }
-        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100svh; }
+    </script>
 
-        .bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; }
-        .orb { position:absolute; border-radius:50%; filter:blur(90px); opacity:.1; animation:drift 16s ease-in-out infinite alternate; }
-        .orb-1 { width:500px; height:500px; background:var(--orange); top:-150px; right:-100px; animation-duration:20s; }
-        .orb-2 { width:300px; height:300px; background:#7c3ded; bottom:5%; left:-60px; animation-duration:14s; animation-delay:-7s; }
-        @keyframes drift { from{transform:translate(0,0);} to{transform:translate(20px,15px);} }
-        .grid-overlay { position:fixed; inset:0; z-index:0; background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px); background-size:48px 48px; }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-        .app { position:relative; z-index:10; display:flex; min-height:100svh; }
+    <style>
+        body {
+            background-color: #0B1120;
+            color: #F3F4F6;
+        }
 
-        /* Sidebar */
-        .sidebar { width:240px; flex-shrink:0; background:rgba(10,16,36,.85); backdrop-filter:blur(20px); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:1.5rem 1rem; position:sticky; top:0; height:100svh; }
-        .logo { display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .75rem; margin-bottom:2rem; }
-        .logo-icon { width:32px; height:32px; background:var(--orange); border-radius:8px; display:grid; place-items:center; box-shadow:0 0 16px rgba(249,115,22,.35); flex-shrink:0; }
-        .logo-icon svg { width:16px; height:16px; color:#fff; }
-        .logo-text { font-size:1.25rem; font-weight:800; letter-spacing:-.04em; color:#fff; }
-        .nav-section { font-size:.62rem; font-weight:700; color:#334155; text-transform:uppercase; letter-spacing:.12em; padding:.25rem .75rem; margin-bottom:.5rem; margin-top:1rem; }
-        .nav-item { display:flex; align-items:center; gap:.75rem; padding:.65rem .75rem; border-radius:10px; font-size:.85rem; font-weight:600; color:var(--muted); text-decoration:none; cursor:pointer; transition:background .15s,color .15s; border:none; background:none; width:100%; text-align:left; }
-        .nav-item:hover { background:rgba(255,255,255,.05); color:var(--text); }
-        .nav-item.active { background:rgba(249,115,22,.12); color:var(--orange); }
-        .nav-item svg { width:16px; height:16px; flex-shrink:0; }
-        .sidebar-bottom { margin-top:auto; }
-        .user-card { display:flex; align-items:center; gap:.75rem; padding:.75rem; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid var(--border); }
-        .user-initials { width:34px; height:34px; border-radius:50%; background:rgba(249,115,22,.2); border:1px solid rgba(249,115,22,.3); display:grid; place-items:center; font-size:.75rem; font-weight:800; color:var(--orange); flex-shrink:0; }
-        .user-name { font-size:.82rem; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px; }
-        .user-email { font-size:.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px; }
-        .logout-btn { display:flex; align-items:center; gap:.5rem; padding:.5rem .75rem; border-radius:8px; font-size:.8rem; font-weight:600; color:var(--muted); text-decoration:none; margin-top:.5rem; transition:color .15s; }
-        .logout-btn:hover { color:#f87171; }
-        .logout-btn svg { width:14px; height:14px; }
+        .bg-fx-container {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+        }
+        .glow-bg {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(11,17,32,0) 70%);
+            top: -100px; right: -100px;
+        }
+        .glow-bg-2 {
+            position: absolute; width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(11,17,32,0) 70%);
+            bottom: -100px; left: -100px;
+        }
 
-        /* Main */
-        .main { flex:1; padding:2.5rem; overflow-y:auto; max-width:1000px; }
-        @media(max-width:768px){ .sidebar{display:none;} .main{padding:1.5rem;} }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
 
-        .page-header { margin-bottom:2rem; }
-        .page-header h1 { font-size:1.6rem; font-weight:800; letter-spacing:-.03em; color:#fff; }
-        .page-header p { font-size:.875rem; color:var(--muted); margin-top:.3rem; }
-        .status-chip { display:inline-flex; align-items:center; gap:.5rem; background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); padding:.3rem .75rem; border-radius:99px; font-size:.72rem; font-weight:700; color:#4ade80; margin-top:.6rem; }
-        .status-dot { width:6px; height:6px; background:#22c55e; border-radius:50%; animation:pulse 2s ease infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-        /* Stats */
-        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem; }
-        .stat-card { background:rgba(15,23,42,.8); border:1px solid var(--border); backdrop-filter:blur(12px); border-radius:16px; padding:1.5rem; position:relative; overflow:hidden; transition:border-color .2s; }
-        .stat-card:hover { border-color:rgba(249,115,22,.25); }
-        .stat-card::before { content:''; position:absolute; top:-20px; right:-20px; width:80px; height:80px; border-radius:50%; filter:blur(30px); opacity:.5; }
-        .stat-card.orange::before { background:rgba(249,115,22,.4); }
-        .stat-card.blue::before   { background:rgba(96,165,250,.4); }
-        .stat-card.green::before  { background:rgba(74,222,128,.4); }
-        .stat-card.purple::before { background:rgba(167,139,250,.4); }
-        .stat-icon { width:38px; height:38px; border-radius:10px; display:grid; place-items:center; margin-bottom:1rem; }
-        .stat-icon.orange { background:rgba(249,115,22,.12); border:1px solid rgba(249,115,22,.2); }
-        .stat-icon.blue   { background:rgba(96,165,250,.12); border:1px solid rgba(96,165,250,.2); }
-        .stat-icon.green  { background:rgba(74,222,128,.12); border:1px solid rgba(74,222,128,.2); }
-        .stat-icon.purple { background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.2); }
-        .stat-icon svg { width:18px; height:18px; }
-        .stat-icon.orange svg { color:var(--orange); }
-        .stat-icon.blue svg   { color:#60a5fa; }
-        .stat-icon.green svg  { color:#4ade80; }
-        .stat-icon.purple svg { color:#a78bfa; }
-        .stat-label { font-size:.75rem; color:var(--muted); font-weight:500; margin-bottom:.3rem; }
-        .stat-value { font-size:1.75rem; font-weight:800; color:#fff; letter-spacing:-.02em; }
-        .stat-sub { font-size:.72rem; color:var(--muted); margin-top:.25rem; }
-
-        /* Cards */
-        .card { background:rgba(15,23,42,.8); border:1px solid var(--border); backdrop-filter:blur(12px); border-radius:20px; padding:1.75rem; margin-bottom:1.5rem; }
-        .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
-        .card-title { display:flex; align-items:center; gap:.6rem; font-size:.95rem; font-weight:700; color:#fff; }
-        .card-title svg { width:16px; height:16px; color:var(--orange); }
-        .card-action { font-size:.75rem; font-weight:700; color:var(--orange); text-decoration:none; background:none; border:none; cursor:pointer; transition:color .15s; }
-        .card-action:hover { color:#fb923c; }
-
-        /* Lojas */
-        .stores-list { display:flex; flex-direction:column; gap:.5rem; }
-        .store-row { display:flex; align-items:center; justify-content:space-between; padding:.65rem .85rem; background:var(--surface); border:1px solid rgba(51,65,85,.4); border-radius:10px; }
-        .store-name { font-size:.85rem; font-weight:600; color:var(--text); }
-        .store-badge { font-size:.65rem; font-weight:700; padding:.2rem .6rem; border-radius:99px; background:rgba(34,197,94,.12); color:#4ade80; border:1px solid rgba(34,197,94,.2); }
-
-        /* Log */
-        .log-list { display:flex; flex-direction:column; gap:.75rem; max-height:340px; overflow-y:auto; }
-        .log-list::-webkit-scrollbar { width:4px; }
-        .log-list::-webkit-scrollbar-track { background:var(--surface); border-radius:4px; }
-        .log-list::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
-        .log-item { display:flex; align-items:flex-start; gap:.85rem; padding:1rem; background:var(--surface); border:1px solid rgba(51,65,85,.4); border-radius:12px; transition:border-color .15s; }
-        .log-item:hover { border-color:rgba(51,65,85,.7); }
-        .log-icon { width:34px; height:34px; border-radius:9px; display:grid; place-items:center; flex-shrink:0; background:rgba(249,115,22,.12); margin-top:1px; }
-        .log-icon svg { width:15px; height:15px; color:var(--orange); }
-        .log-info { flex:1; }
-        .log-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:.3rem; }
-        .log-name { font-size:.85rem; font-weight:700; color:var(--text); }
-        .log-brand { font-size:.68rem; color:var(--muted); }
-        .log-tags { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.45rem; }
-        .log-tag { font-size:.65rem; font-weight:600; padding:.2rem .55rem; border-radius:6px; }
-        .log-tag.price { background:rgba(51,65,85,.5); color:#94a3b8; border:1px solid rgba(51,65,85,.6); }
-        .log-tag.sent  { background:rgba(34,197,94,.1); color:#4ade80; border:1px solid rgba(34,197,94,.2); }
-        .log-tag.date  { background:rgba(51,65,85,.3); color:#64748b; border:1px solid rgba(51,65,85,.4); }
-
-        /* Empty */
-        .empty-state { text-align:center; padding:3rem 1rem; }
-        .empty-state svg { width:44px; height:44px; color:#1e293b; margin:0 auto .75rem; display:block; }
-        .empty-state p { font-size:.85rem; color:var(--muted); }
-        .empty-state span { font-size:.78rem; color:#334155; margin-top:.25rem; display:block; }
-
-        /* Skeleton */
-        .skeleton { background:linear-gradient(90deg, var(--subtle) 25%, rgba(30,41,59,.8) 50%, var(--subtle) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
-        @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
-        .skel-text { height:14px; margin-bottom:6px; }
-        .skel-val  { height:32px; width:60px; }
-
-        /* Buttons */
-        .btn-create { display:inline-flex; align-items:center; gap:.5rem; padding:.7rem 1.4rem; background:var(--orange); color:#fff; font-size:.85rem; font-weight:700; border-radius:12px; text-decoration:none; transition:all .15s; box-shadow:0 4px 14px rgba(249,115,22,.3); }
-        .btn-create:hover { background:#ea6d0e; transform:translateY(-1px); }
-        .btn-create svg { width:15px; height:15px; }
-        .btn-sm { display:flex; align-items:center; gap:.4rem; padding:.4rem .85rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:8px; font-size:.75rem; font-weight:600; color:var(--muted); cursor:pointer; transition:all .15s; }
-        .btn-sm:hover { background:rgba(255,255,255,.08); color:var(--text); }
-        .btn-sm svg { width:13px; height:13px; }
-
-        .two-col { display:grid; grid-template-columns:1fr 1.6fr; gap:1.5rem; }
-        @media(max-width:900px){ .two-col{grid-template-columns:1fr;} }
-
-        /* No-bot banner */
-        .setup-banner { background:rgba(249,115,22,.06); border:1px solid rgba(249,115,22,.2); border-radius:16px; padding:1.5rem 2rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:2rem; flex-wrap:wrap; }
-        .setup-banner p { font-size:.875rem; color:#cbd5e1; }
-        .setup-banner strong { color:#fff; }
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 0.5rem;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skel-metric { height: 36px; width: 60%; }
     </style>
 </head>
-<body>
+<body class="font-body antialiased flex h-screen overflow-hidden">
 
-<div class="bg-layer"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
-<div class="grid-overlay"></div>
+    <div class="bg-fx-container">
+        <div class="glow-bg"></div>
+        <div class="glow-bg-2"></div>
+    </div>
 
-<div class="app">
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <a href="/" class="logo">
-            <div class="logo-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+    <aside class="w-64 flex-shrink-0 glass-card border-r border-white/5 flex flex-col justify-between hidden md:flex z-20 h-full relative">
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-6 border-b border-white/5 sticky top-0 bg-[#0B1120]/80 backdrop-blur-md z-10">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-9 h-9 bg-gradient-to-br from-brand-primary to-emerald-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="font-display font-extrabold text-xl tracking-tight text-white">afilibot</span>
+                </a>
             </div>
-            <span class="logo-text">afilibot</span>
-        </a>
 
-        <div class="nav-section">Menu</div>
-        <a href="/dashboard" class="nav-item active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-            Dashboard
-        </a>
-        <a href="/createbot" class="nav-item" id="nav-novo-bot">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-            Novo Bot
-        </a>
-        <a href="/createbot" class="nav-item" id="nav-meu-bot" style="display:none;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-            Meu Bot
-        </a>
+            <div class="p-4 space-y-1">
+                <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-brand-primary/10 text-brand-primary font-semibold border-r-2 border-brand-primary transition">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    Visão Geral
+                </a>
+                <a href="/subscription" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white font-medium transition">
+                    <i data-lucide="credit-card" class="w-5 h-5"></i>
+                    Assinatura
+                </a>
+            </div>
 
-        <div class="sidebar-bottom">
-            <div class="user-card">
-                <div class="user-initials" id="user-initials">—</div>
-                <div>
-                    <div class="user-name" id="user-name">Carregando...</div>
-                    <div class="user-email" id="user-email"></div>
+            <div class="px-4 mt-2">
+                <div class="flex items-center justify-between px-3 mb-2 mt-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Meus Robôs</p>
+                    <a href="/createbot" class="text-brand-primary hover:text-brand-hover transition" title="Adicionar Robô">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    </a>
+                </div>
+                
+                <div class="space-y-1" id="sidebar-bots-list">
+                    <div class="skeleton h-10 w-full rounded-lg"></div>
+                    <div class="skeleton h-10 w-full rounded-lg"></div>
                 </div>
             </div>
-            <a href="/auth/logout" class="logout-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                Sair
+        </div>
+
+        <div class="p-4 border-t border-white/5 bg-[#0B1120]/80 backdrop-blur-md">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 mb-3">
+                <div id="user-initials" class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center font-display font-bold text-white shadow-inner flex-shrink-0">
+                    --
+                </div>
+                <div class="overflow-hidden">
+                    <p id="user-name" class="text-sm font-bold text-white truncate">Carregando...</p>
+                    <p id="user-email" class="text-xs text-gray-400 truncate">...</p>
+                </div>
+            </div>
+            <a href="/auth/logout" class="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                Sair da conta
             </a>
         </div>
     </aside>
 
-    <!-- Main -->
-    <main class="main">
-        <div class="page-header">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 h-full overflow-y-auto relative z-10">
+        
+        <header class="md:hidden glass-card border-b border-white/5 p-4 flex items-center justify-between sticky top-0 z-30">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-lg text-white">afilibot</span>
+            </a>
+            <button class="text-gray-400 hover:text-white"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        </header>
+
+        <div class="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+            
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1>Dashboard</h1>
-                    <p id="greeting">Acompanhe a automação do seu canal de ofertas.</p>
-                    <div class="status-chip">
-                        <span class="status-dot"></span> Sistema operacional
+                    <h1 class="font-display text-3xl font-extrabold text-white" id="greeting">Resumo de Performance</h1>
+                    <p class="text-gray-400 text-sm mt-1">Veja como as suas automações estão a desempenhar hoje.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="initDashboard()" class="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 text-gray-400 hover:text-white transition" title="Atualizar Dados">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+                    <a href="/createbot" class="bg-brand-primary hover:bg-brand-hover text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-brand-primary/20 transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Novo Robô
+                    </a>
+                </div>
+            </div>
+
+            <!-- Banner sem bot -->
+            <div id="setup-banner" style="display: none;" class="bg-gradient-to-r from-brand-accent/20 to-transparent border border-brand-accent/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg shadow-brand-accent/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-brand-accent/20 rounded-full flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="w-6 h-6 text-brand-accent"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold text-lg mb-1">Crie o seu primeiro robô!</h3>
+                        <p class="text-gray-400 text-sm">Você ainda não tem automações ativas. Configure um robô para o Telegram ou WhatsApp e comece a gerar comissões.</p>
                     </div>
                 </div>
-                <a href="/createbot" class="btn-create">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    Novo bot
+                <a href="/createbot" class="bg-white text-brand-dark font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition whitespace-nowrap shadow-lg">
+                    Configurar Robô
                 </a>
             </div>
-        </div>
 
-        <!-- Banner: sem bot configurado -->
-        <div class="setup-banner" id="setup-banner" style="display:none;">
-            <p><strong>Você ainda não tem um bot configurado.</strong><br>Configure agora para começar a enviar ofertas automaticamente.</p>
-            <a href="/createbot" class="btn-create">Configurar bot →</a>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card orange">
-                <div class="stat-icon orange">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </div>
-                <div class="stat-label">Ofertas Hoje</div>
-                <div class="stat-value" id="stat-today"><span class="skeleton skel-val"></span></div>
-                <div class="stat-sub">Enviadas nas últimas 24h</div>
-            </div>
-            <div class="stat-card blue">
-                <div class="stat-icon blue">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </div>
-                <div class="stat-label">Total Enviadas</div>
-                <div class="stat-value" id="stat-total"><span class="skeleton skel-val"></span></div>
-                <div class="stat-sub">Total acumulado</div>
-            </div>
-            <div class="stat-card green">
-                <div class="stat-icon green">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                </div>
-                <div class="stat-label">Lojas Monitoradas</div>
-                <div class="stat-value" id="stat-stores"><span class="skeleton skel-val"></span></div>
-                <div class="stat-sub">Configuradas no bot</div>
-            </div>
-
-        </div>
-
-        <!-- Lojas + Log -->
-        <div class="two-col">
-            <div class="card" style="margin-bottom:0;">
-                <div class="card-header">
-                    <div class="card-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                        Lojas Ativas
+            <!-- Métricas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                
+                <div class="glass-card p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 border border-blue-500/20">
+                        <i data-lucide="send" class="w-5 h-5"></i>
                     </div>
-                    <a href="/createbot" class="card-action">Editar</a>
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Ofertas Enviadas Hoje</p>
+                    <h3 class="font-display text-3xl font-black text-white" id="stat-today"><div class="skeleton skel-metric"></div></h3>
                 </div>
-                <div class="stores-list" id="stores-list">
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                        <p>Nenhuma loja configurada</p>
-                        <span><a href="/createbot" style="color:var(--orange);font-weight:600;">Configure seu bot →</a></span>
+
+                <div class="glass-card p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mb-4 border border-brand-primary/20">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     </div>
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Enviadas</p>
+                    <h3 class="font-display text-3xl font-black text-white" id="stat-total"><div class="skeleton skel-metric"></div></h3>
                 </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-purple/10 text-brand-purple flex items-center justify-center mb-4 border border-brand-purple/20">
+                        <i data-lucide="radar" class="w-5 h-5"></i>
+                    </div>
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Lojas em Monitoramento</p>
+                    <h3 class="font-display text-3xl font-black text-white" id="stat-stores"><div class="skeleton skel-metric"></div></h3>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div class="w-10 h-10 rounded-xl bg-gray-800 text-gray-400 flex items-center justify-center mb-4 border border-gray-700">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    </div>
+                    <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Status do Robô</p>
+                    <h3 class="font-display text-xl font-black text-white" id="stat-status">
+                        <div class="skeleton skel-metric"></div>
+                    </h3>
+                </div>
+
             </div>
 
-            <div class="card" style="margin-bottom:0;">
-                <div class="card-header">
-                    <div class="card-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-                        Últimos Envios
+            <!-- Lojas + Log -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                
+                <!-- Lojas Ativas -->
+                <div class="glass-card rounded-2xl border border-white/5 flex flex-col h-auto lg:h-[450px]">
+                    <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                        <h3 class="font-display text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="shopping-bag" class="w-5 h-5 text-brand-primary"></i> Lojas Ativas
+                        </h3>
+                        <a href="/createbot" class="text-xs font-bold text-brand-primary hover:text-brand-hover transition">Editar</a>
                     </div>
-                    <button class="btn-sm" onclick="loadLogs()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-                        Atualizar
-                    </button>
-                </div>
-                <div class="log-list" id="log-list">
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></svg>
-                        <p>Nenhum envio ainda</p>
-                        <span>Os envios aparecerão assim que o bot rodar.</span>
+                    
+                    <div class="p-6 overflow-y-auto flex-1 space-y-3" id="stores-list">
+                        <div class="skeleton h-10 w-full rounded-lg"></div>
+                        <div class="skeleton h-10 w-full rounded-lg"></div>
+                        <div class="skeleton h-10 w-full rounded-lg"></div>
                     </div>
                 </div>
+
+                <!-- Scanner de Ofertas -->
+                <div class="glass-card rounded-2xl border border-white/5 flex flex-col h-[450px]">
+                    <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <h3 class="font-display text-lg font-bold text-white flex items-center gap-2">
+                                <i data-lucide="crosshair" class="w-5 h-5 text-brand-accent"></i> Scanner de Ofertas
+                            </h3>
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                            </span>
+                        </div>
+                        <button onclick="loadLogs()" class="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition" title="Atualizar">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="p-6 overflow-y-auto flex-1 space-y-3" id="log-list">
+                        <div class="skeleton h-16 w-full"></div>
+                        <div class="skeleton h-16 w-full"></div>
+                        <div class="skeleton h-16 w-full"></div>
+                        <div class="skeleton h-16 w-full"></div>
+                    </div>
+                </div>
+
             </div>
+            
+            <div class="h-10 md:h-0"></div>
         </div>
     </main>
-</div>
 
-<script>
-    async function loadUser() {
-        const res  = await fetch('/api/dashboard/me');
-        const data = await res.json();
+    <script>
+        lucide.createIcons();
 
-        const name  = data.name  || 'Usuário';
-        const email = data.email || '';
+        // 1. Usuário — GET /api/dashboard/me → { name, email }
+        async function loadUser() {
+            try {
+                const res  = await fetch('/api/dashboard/me');
+                const data = await res.json();
+                if (data.error) return;
 
-        // sidebar
-        document.getElementById('user-name').textContent    = name;
-        document.getElementById('user-email').textContent   = email;
-        document.getElementById('user-initials').textContent = name.trim().charAt(0).toUpperCase();
+                const name  = data.name  || 'Usuário';
+                const email = data.email || '';
 
-        // greeting
-        const hour = new Date().getHours();
-        const periodo = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
-        const firstName = name.split(' ')[0];
-        document.getElementById('greeting').textContent = `${periodo}, ${firstName}. Acompanhe a automação do seu canal.`;
-    }
+                document.getElementById('user-name').textContent    = name;
+                document.getElementById('user-email').textContent   = email;
+                document.getElementById('user-initials').textContent = name.trim().charAt(0).toUpperCase();
 
-    async function loadStats() {
-        const res  = await fetch('/api/dashboard/stats');
-        const data = await res.json();
-
-        if (!data.has_bot) {
-            document.getElementById('setup-banner').style.display = 'flex';
-            document.getElementById('stat-today').textContent      = '—';
-            document.getElementById('stat-total').textContent      = '—';
-            document.getElementById('stat-stores').textContent     = '0';
-            return;
+                const hour     = new Date().getHours();
+                const periodo  = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+                const firstName = name.split(' ')[0];
+                document.getElementById('greeting').textContent = `${periodo}, ${firstName}!`;
+            } catch (e) {}
         }
 
-        // Bot existe — atualiza sidebar
-        document.getElementById('nav-meu-bot').style.display  = 'flex';
-        document.getElementById('nav-novo-bot').style.display = 'none';
+        // 2. Stats — GET /api/dashboard/stats
+        // Retorna: { has_bot, stores: [{brand}], sent_today, sent_total, status }
+        async function loadStats() {
+            try {
+                const res  = await fetch('/api/dashboard/stats');
+                const data = await res.json();
 
-        document.getElementById('stat-today').textContent  = data.sent_today;
-        document.getElementById('stat-total').textContent  = data.sent_total;
-        document.getElementById('stat-stores').innerHTML   =
-            data.stores.length + '<span style="font-size:1rem;color:var(--muted);font-weight:500"> / 26</span>';
+                if (!data.has_bot) {
+                    document.getElementById('setup-banner').style.display = 'flex';
+                    document.getElementById('stat-today').textContent  = '—';
+                    document.getElementById('stat-total').textContent  = '—';
+                    document.getElementById('stat-stores').textContent = '0';
+                    document.getElementById('stat-status').textContent = '—';
 
-        // lojas ativas
-        if (data.stores.length > 0) {
-            const list = document.getElementById('stores-list');
-            list.innerHTML = '';
-            data.stores.forEach(name => {
-                list.insertAdjacentHTML('beforeend',
-                    `<div class="store-row">
-                        <span class="store-name">${name}</span>
-                        <span class="store-badge">Monitorando</span>
-                    </div>`
-                );
-            });
+                    document.getElementById('sidebar-bots-list').innerHTML =
+                        '<p class="text-[10px] text-gray-500 px-3">Nenhum robô criado.</p>';
+                    document.getElementById('stores-list').innerHTML =
+                        '<p class="text-sm text-gray-500 text-center py-6">Nenhuma loja configurada.<br><a href="/createbot" class="text-brand-primary font-semibold">Configure seu bot →</a></p>';
+                    return;
+                }
+
+                document.getElementById('stat-today').textContent  = data.sent_today ?? 0;
+                document.getElementById('stat-total').textContent  = data.sent_total ?? 0;
+                document.getElementById('stat-stores').textContent = data.stores.length;
+
+                // Status badge
+                const isActive = String(data.status).toLowerCase() === 'active';
+                document.getElementById('stat-status').innerHTML = isActive
+                    ? '<span class="inline-flex items-center gap-1.5 text-brand-primary text-sm font-bold"><span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse inline-block"></span>Ativo</span>'
+                    : '<span class="text-gray-400 text-sm font-bold">Pausado</span>';
+
+                // Sidebar bot link
+                document.getElementById('sidebar-bots-list').innerHTML = `
+                    <a href="/createbot" class="flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 transition">
+                        <div class="flex items-center gap-3 truncate">
+                            <i data-lucide="send" class="w-4 h-4 text-blue-400"></i>
+                            <span class="text-sm font-medium truncate">Meu Bot</span>
+                        </div>
+                        <div class="w-2 h-2 rounded-full ${isActive ? 'bg-brand-primary' : 'bg-gray-600'}"></div>
+                    </a>
+                `;
+
+                // Lojas ativas
+                const storesList = document.getElementById('stores-list');
+                if (data.stores.length === 0) {
+                    storesList.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">Nenhuma loja configurada.</p>';
+                } else {
+                    storesList.innerHTML = '';
+                    data.stores.forEach(s => {
+                        const brandName = typeof s === 'object' ? s.brand : s;
+                        storesList.insertAdjacentHTML('beforeend', `
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                <span class="text-sm font-semibold text-gray-200">${brandName}</span>
+                                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded border border-brand-primary/20">Monitorando</span>
+                            </div>
+                        `);
+                    });
+                }
+
+                lucide.createIcons();
+            } catch (e) {
+                console.error('Erro ao carregar stats:', e);
+            }
         }
-    }
 
-    async function loadLogs() {
-        const res  = await fetch('/api/dashboard/logs');
-        const data = await res.json();
-        const list = document.getElementById('log-list');
+        // 3. Logs — GET /api/dashboard/logs
+        // Retorna: { logs: [{ name, brand, discount_price, full_price }] }
+        async function loadLogs() {
+            try {
+                const res  = await fetch('/api/dashboard/logs');
+                const data = await res.json();
+                const list = document.getElementById('log-list');
 
-        if (!data.logs || data.logs.length === 0) return;
+                if (!data.logs || data.logs.length === 0) {
+                    list.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">Nenhuma oferta processada recentemente.</p>';
+                    return;
+                }
 
-        list.innerHTML = '';
-        data.logs.forEach(p => {
-            const pct = p.full_price > 0
-                ? Math.round((1 - p.discount_price / p.full_price) * 100)
-                : 0;
-            list.insertAdjacentHTML('beforeend',
-                `<div class="log-item">
-                    <div class="log-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    </div>
-                    <div class="log-info">
-                        <div class="log-top">
-                            <span class="log-name">${p.name}</span>
+                list.innerHTML = '';
+                data.logs.forEach(p => {
+                    const pct = p.full_price > 0
+                        ? Math.round((1 - p.discount_price / p.full_price) * 100)
+                        : 0;
+                    
+                    list.insertAdjacentHTML('beforeend', `
+                        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/[0.02] transition border border-transparent hover:border-white/5">
+                            <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse shrink-0"></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-gray-200 truncate" title="${p.name}">${p.name}</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-brand-accent">${p.brand}</span>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    ${pct > 0 ? `<span class="text-xs text-gray-500 line-through">R$${parseFloat(p.full_price).toFixed(2)}</span>` : ''}
+                                    <span class="text-sm font-black text-brand-primary">R$${parseFloat(p.discount_price).toFixed(2)}</span>
+                                </div>
+                                ${pct > 0 ? `<span class="inline-block mt-0.5 text-[9px] font-bold bg-brand-primary/20 text-brand-primary px-1.5 py-0.5 rounded">-${pct}%</span>` : ''}
+                            </div>
                         </div>
-                        <div class="log-brand">${p.brand}</div>
-                        <div class="log-tags">
-                            <span class="log-tag price">R$ ${p.discount_price.toFixed(2)}</span>
-                            ${pct > 0 ? `<span class="log-tag sent">-${pct}%</span>` : ''}
-                            ${p.sent_at ? `<span class="log-tag date">${p.sent_at}</span>` : ''}
-                        </div>
-                    </div>
-                </div>`
-            );
-        });
-    }
+                    `);
+                });
+            } catch (e) {
+                console.error('Erro ao carregar logs:', e);
+            }
+        }
 
-    // Carrega tudo ao abrir a página
-    Promise.all([loadUser(), loadStats(), loadLogs()]);
-</script>
+        function initDashboard() {
+            document.getElementById('stat-today').innerHTML = '<div class="skeleton skel-metric"></div>';
+            document.getElementById('stat-total').innerHTML = '<div class="skeleton skel-metric"></div>';
+            loadUser();
+            loadStats();
+            loadLogs();
+        }
+
+        setTimeout(initDashboard, 400);
+    </script>
 </body>
 </html>

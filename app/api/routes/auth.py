@@ -8,7 +8,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.src.infrabackend.database import get_db
-from app.src.infrabackend.repository import UserRepository
+from app.src.infrabackend.repository import UserRepository, SubscriptionRepository
+from app.src.domain.models import StatusSubPlains
 from app.src.infrabackend.config import (
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -147,9 +148,16 @@ def current_user(request: Request, db: Session = Depends(get_db)) -> dict | None
     if not user:
         return None
 
+    # Busca o plano da subscription ativa (monthly ou annual)
+    sub  = SubscriptionRepository(db).get_by_user_id(google_id)
+    subscription_plan = (
+        sub.plan if sub and sub.status == StatusSubPlains.active else None
+    )
+
     return {
-        "google_id": google_id,
-        "email":     request.session.get("email"),
-        "name":      request.session.get("name"),
-        "plan":      user.subplain,
+        "google_id":         google_id,
+        "email":             request.session.get("email"),
+        "name":              request.session.get("name"),
+        "plan":              user.subplain,
+        "subscription_plan": subscription_plan,  # "monthly" | "annual" | None
     }

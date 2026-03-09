@@ -1,8 +1,9 @@
 from sqlalchemy import (
     Column, Integer, String, BigInteger, ForeignKey,
-    Boolean, Numeric, UniqueConstraint, Enum, Index, DateTime)
+    Boolean, Numeric, UniqueConstraint, Enum, Index, DateTime, Text, Time)
 from sqlalchemy.orm import relationship, declarative_base
 import enum
+from datetime import time
 from datetime import datetime, timezone
 
 BASE = declarative_base()
@@ -46,6 +47,7 @@ class PaymentMethod(str, enum.Enum):
 class Platform(str, enum.Enum):
     shopify   = "shopify"
     nuvemshop = "nuvemshop"
+    mercadolivre = "mercadolivre"
 
 
 class Store(BASE):
@@ -71,8 +73,8 @@ class Store(BASE):
 class BotStore(BASE):
     __tablename__ = "bot_stores"
 
-    user_id_bot   = Column(String, ForeignKey("bots.user_id", ondelete="CASCADE"), primary_key=True)
-    brand = Column(String, ForeignKey("stores.brand", ondelete="CASCADE"), primary_key=True)
+    bot_id = Column(Integer, ForeignKey("bots.id", ondelete="CASCADE"), primary_key=True)
+    brand  = Column(String,  ForeignKey("stores.brand", ondelete="CASCADE"), primary_key=True)
 
     bot   = relationship("Bot",   back_populates="stores")
     store = relationship("Store", back_populates="bot_stores")
@@ -98,6 +100,29 @@ class Product(BASE):
 
     #loja que o produto pertence
     store = relationship("Store", back_populates="products")
+
+class MLProduct(BASE):
+    """
+    Produtos raspados do Mercado Livre.
+    Tabela própria — não usa a FK de stores nem o campo size,
+    que não fazem sentido para o modelo do ML.
+    """
+    __tablename__ = "ml_products"
+    __table_args__ = (
+        UniqueConstraint("ml_item_id", name="uq_ml_item_id"),
+        Index("ix_ml_products_category_discount", "category", "discount_pct"),
+    )
+
+    id             = Column(Integer,  primary_key=True)
+    ml_item_id     = Column(String(20),  nullable=False, unique=True)  # ex: MLB1234567890
+    category       = Column(String(50),  nullable=False, index=True)   # ex: ML-Celulares
+    title          = Column(String(300), nullable=False)
+    discount_price = Column(Numeric(10, 2), nullable=False)
+    full_price     = Column(Numeric(10, 2), nullable=False)
+    discount_pct   = Column(Numeric(5,  2), nullable=False)            # % pre-calculado
+    image          = Column(String(500), nullable=True)
+    link           = Column(Text, nullable=False)
+    updated_at     = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
 
 
@@ -134,6 +159,7 @@ class Bot(BASE):
     status          = Column(Enum(StatusBot), default=StatusBot.active, nullable=False)
     created_at      = Column(DateTime(timezone=True), default=_now, nullable=False)
     updated_at      = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+    time_to_sent = Column(Time(timezone=True), nullable=False, default=time(12, 0))
 
     user       = relationship("User",     back_populates="bot")
     stores = relationship("BotStore", back_populates="bot", cascade="all, delete-orphan")

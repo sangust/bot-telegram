@@ -106,11 +106,11 @@ async def create_checkout(
             "price":       plan["price"],
             "description": "Automação de afiliados",
         }],
-        # Secret removido da query string — qualquer pessoa que veja os logs da URL conseguia forjar webhooks
-        # O AbacatePay deve validar via HMAC no header (ver webhook abaixo)
+
+
         "webhookUrl":    f"{BASE_URL}/api/subscription/webhook",
         "completionUrl": f"{BASE_URL}/createbot?payment=success",
-        "returnUrl":     f"{BASE_URL}/",
+        "returnUrl":     f"{BASE_URL}/subscription?payment=loading",
     }
 
     async with httpx.AsyncClient() as client:

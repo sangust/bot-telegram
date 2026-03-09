@@ -4,7 +4,7 @@ from telegram import Bot
 from telegram.request import HTTPXRequest
 from ..infrabackend.repository import BotRepository
 from ..infrabackend.database import SessionLocal
-from ..domain.models import Product, Bot as meuBot
+from ..domain.models import Product, MLProduct, Bot as meuBot
 
 
 #Mostrar logs.
@@ -60,38 +60,73 @@ class Afilibot:
             f"📐 Tamanhos: {product.size or 'Único'}\n\n"
             f"<a href=\"{link}\">🔗 Comprar agora</a>"
         )
-    
+
+    @staticmethod
+    def _format_ml_message(product: MLProduct, affiliate_link: str | None) -> str:
+        link = product.link
+        if affiliate_link:
+            separator = "&" if "?" in link else "?"
+            link = f"{link}{separator}{affiliate_link}"
+
+        discount_pct = f"  {round(float(product.discount_pct))}% OFF" if product.discount_pct else ""
+
+        return (
+            f"<b>🔥 Mercado Livre | {product.title}</b>\n\n"
+            f"Preço Normal: {Afilibot._format_price(product.full_price)}\n"
+            f"Preço Com Desconto: {Afilibot._format_price(product.discount_price)} -{discount_pct}\n\n"
+            f"<a href=\"{link}\">🔗 Comprar agora</a>"
+        )
+
+
 
     async def send_promotions(self, brands: list[str], affiliate_link: str | None = None) -> dict:
-    # Buscar produtos e fechar sessão imediatamente
-        with SessionLocal() as db:
-            botrepo = BotRepository(db)
-            products:list[str] = botrepo.discount_products(brands=brands)
+        ml_categories   = [b for b in brands if b.startswith("ML-")]
+        regular_brands  = [b for b in brands if not b.startswith("ML-")]
 
-        if not products:
+        with SessionLocal() as db:
+            botrepo      = BotRepository(db)
+            products     = botrepo.discount_products(brands=regular_brands) if regular_brands else []
+            ml_products  = (
+                db.query(MLProduct)
+                .filter(MLProduct.category.in_(ml_categories))
+                .order_by(MLProduct.discount_pct.desc())
+                .limit(200)
+                .all()
+            ) if ml_categories else []
+
+        all_items = (
+            [("regular", p) for p in products] +
+            [("ml",      p) for p in ml_products]
+        )
+
+        if not all_items:
             logger.info("Nenhum produto com desconto para brands=%s", brands)
             return {"sent": 0}
 
         sent = 0
         batch_counter = 0
 
-        for product in products:
+        for kind, product in all_items:
             await asyncio.sleep(10)
 
             try:
-                msg = self._format_message(product, affiliate_link)
+                if kind == "ml":
+                    msg   = self._format_ml_message(product, affiliate_link)
+                    image = product.image
+                else:
+                    msg   = self._format_message(product, affiliate_link)
+                    image = product.image
 
                 await self.bot.send_photo(
-                    chat_id=self.chat_id,
-                    photo=product.image,
-                    caption=msg,
-                    parse_mode="HTML",
+                    chat_id    = self.chat_id,
+                    photo      = image,
+                    caption    = msg,
+                    parse_mode = "HTML",
                 )
 
-                sent += 1
+                sent          += 1
                 batch_counter += 1
 
-                # Atualiza métricas a cada 5 envios
                 if batch_counter == 5:
                     with SessionLocal() as db:
                         db.query(meuBot).filter(
@@ -99,17 +134,20 @@ class Afilibot:
                         ).update(
                             {
                                 meuBot.today_sent: meuBot.today_sent + batch_counter,
-                                meuBot.all_sent: meuBot.all_sent + batch_counter,
+                                meuBot.all_sent:   meuBot.all_sent   + batch_counter,
                             },
                             synchronize_session=False,
                         )
                         db.commit()
                     batch_counter = 0
 
-            except Exception as e:
-                logger.error("Erro ao enviar produto %s: %s", product.name, e)
+                if sent == 50:
+                    break
 
-        # Atualiza o restante que não fechou múltiplo de 5
+            except Exception as e:
+                name = getattr(product, "title", None) or getattr(product, "name", "?")
+                logger.error("Erro ao enviar produto %s: %s", name, e)
+
         if batch_counter > 0:
             with SessionLocal() as db:
                 db.query(meuBot).filter(
@@ -117,7 +155,7 @@ class Afilibot:
                 ).update(
                     {
                         meuBot.today_sent: meuBot.today_sent + batch_counter,
-                        meuBot.all_sent: meuBot.all_sent + batch_counter,
+                        meuBot.all_sent:   meuBot.all_sent   + batch_counter,
                     },
                     synchronize_session=False,
                 )

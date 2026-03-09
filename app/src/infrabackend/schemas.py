@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
-from datetime import datetime
+from datetime import datetime, time
 from typing import Optional
 from app.src.domain.models import (SubPlains, StatusSubPlains, StatusBot, PlanType, PaymentMethod, Platform)
 
@@ -80,6 +80,7 @@ class BotSchema(BaseModel):
     status:         Optional[StatusBot] = None
     created_at:     Optional[datetime] = None
     updated_at:     Optional[datetime] = None
+    time_to_sent: Optional[time] = time(12,0)
 
     model_config = {"from_attributes": True}
 

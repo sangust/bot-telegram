@@ -28,16 +28,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # ── Unlock state se travado ────────────────────────────────────────
-      - name: Unlock Terraform State
-        run: |
-          az storage blob lease break \
-            --account-name afilibottfstate \
-            --container-name tfstate \
-            --blob-name prod.terraform.tfstate \
-            || echo "Sem lock ativo, continuando..."
 
-      # ── Terraform Init ─────────────────────────────────────────────────
       - name: Terraform Init
         working-directory: infra
         env:
@@ -47,7 +38,7 @@ jobs:
           ARM_TENANT_ID:       ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
         run: terraform init
 
-      # ── Import Resource Group ──────────────────────────────────────────
+
       - name: Import Resource Group
         working-directory: infra
         env:
@@ -76,7 +67,9 @@ jobs:
             /subscriptions/${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}/resourceGroups/afilibot \
             || echo "Resource group já importado, continuando..."
 
-      # ── Terraform Apply ────────────────────────────────────────────────
+      
+
+
       - name: Terraform Apply
         working-directory: infra
         env:

@@ -3,326 +3,660 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novo Bot | afilibot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:      #020617;
-            --surface: #0f172a;
-            --border:  rgba(51, 65, 85, 0.6);
-            --orange:  #f97316;
-            --text:    #f1f5f9;
-            --muted:   #64748b;
-            --green:   #22c55e;
-        }
-
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100svh; }
-
-        .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-        .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.13; animation: drift 16s ease-in-out infinite alternate; }
-        .orb-1 { width: 420px; height: 420px; background: var(--orange); top: -100px; left: -80px; animation-duration: 18s; }
-        .orb-2 { width: 280px; height: 280px; background: #7c3ded; bottom: 5%; right: -60px; animation-duration: 14s; animation-delay: -6s; }
-        @keyframes drift { from{transform:translate(0,0) scale(1);} to{transform:translate(25px,18px) scale(1.07);} }
-        .grid-overlay { position:fixed; inset:0; z-index:0; background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px); background-size:48px 48px; }
-
-        nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(2,6,23,.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
-        .nav-inner { max-width:760px; margin:0 auto; padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; }
-        .logo { display:flex; align-items:center; gap:.6rem; text-decoration:none; }
-        .logo-icon { width:32px; height:32px; background:var(--orange); border-radius:8px; display:grid; place-items:center; box-shadow:0 0 16px rgba(249,115,22,.35); }
-        .logo-icon svg { width:16px; height:16px; color:#fff; }
-        .logo-text { font-size:1.25rem; font-weight:800; letter-spacing:-.04em; color:#fff; }
-        .back-link { display:flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; color:var(--muted); text-decoration:none; transition:color .15s; }
-        .back-link:hover { color:var(--text); }
-        .back-link svg { width:14px; height:14px; }
-
-        .page { position:relative; z-index:10; max-width:760px; margin:0 auto; padding:100px 2rem 5rem; }
-        .page-label { display:inline-flex; align-items:center; gap:.5rem; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2); padding:.3rem .85rem; border-radius:99px; font-size:.68rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:.08em; margin-bottom:1.25rem; }
-        .page-label svg { width:12px; height:12px; }
-        .page-title { font-size:2rem; font-weight:800; letter-spacing:-.03em; color:#fff; margin-bottom:.5rem; }
-        .page-sub { font-size:.9rem; color:var(--muted); line-height:1.6; margin-bottom:2.5rem; }
-
-        .step-box { background:rgba(15,23,42,.75); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:20px; padding:2rem; margin-bottom:1.25rem; }
-        .step-title { font-size:.95rem; font-weight:700; color:#fff; margin-bottom:1.25rem; display:flex; align-items:center; gap:.6rem; }
-        .step-num { width:24px; height:24px; border-radius:50%; background:var(--orange); display:grid; place-items:center; font-size:.7rem; font-weight:800; color:#fff; flex-shrink:0; }
-
-        /* Botão de adicionar ao grupo */
-        .btn-add-group {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: .65rem;
-            width: 100%;
-            padding: .9rem 1.5rem;
-            background: #229ED9;
-            color: #fff;
-            font-family: inherit;
-            font-size: .95rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background .15s, transform .15s;
-            box-shadow: 0 8px 28px rgba(34,158,217,.25);
-            margin-bottom: 1rem;
-        }
-        .btn-add-group:hover { background: #1a8bbf; transform: translateY(-1px); }
-        .btn-add-group svg { width:18px; height:18px; flex-shrink:0; }
-        .btn-add-group.clicked { background: #1a8bbf; opacity: .8; pointer-events: none; }
-
-        .hint-text { font-size:.75rem; color:var(--muted); text-align:center; line-height:1.5; }
-
-        /* Status */
-        .status-row { display:flex; align-items:center; gap:.6rem; font-size:.82rem; padding:.75rem 1rem; border-radius:10px; margin-top:1rem; }
-        .status-idle { color:var(--muted); background:rgba(2,6,23,.5); border:1px solid var(--border); display:none; }
-        .status-waiting { color:var(--muted); background:rgba(2,6,23,.5); border:1px solid var(--border); display:none; }
-        .status-found { color:var(--green); background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); display:none; }
-        .status-row.visible { display:flex; }
-
-        .pulse { width:8px; height:8px; border-radius:50%; background:var(--orange); animation:pulse 1.4s ease-in-out infinite; flex-shrink:0; }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.8);} }
-        .dot-green { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
-
-        /* Form */
-        .form-section { background:rgba(15,23,42,.75); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:20px; padding:2rem; margin-bottom:1.25rem; }
-        .section-head { display:flex; align-items:center; gap:.75rem; padding-bottom:1.25rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(51,65,85,.4); }
-        .section-icon { width:36px; height:36px; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2); border-radius:10px; display:grid; place-items:center; flex-shrink:0; }
-        .section-icon svg { width:16px; height:16px; color:var(--orange); }
-        .section-title { font-size:.95rem; font-weight:700; color:#fff; }
-        .section-sub { font-size:.78rem; color:var(--muted); margin-top:.15rem; }
-
-        .input-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
-        @media(max-width:540px){ .input-grid{grid-template-columns:1fr;} }
-        .field-wrap { display:flex; flex-direction:column; gap:.5rem; }
-        .field-label { font-size:.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; }
-        .field-label span { color:var(--orange); }
-        .field-label em { color:#334155; font-style:normal; font-weight:500; text-transform:none; letter-spacing:0; }
-        .input-wrap { position:relative; }
-        .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); pointer-events:none; }
-        .input-icon svg { width:15px; height:15px; color:#334155; }
-        input[type=text] { width:100%; background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.6); border-radius:12px; padding:.8rem 1rem .8rem 2.75rem; font-family:inherit; font-size:.875rem; color:var(--text); transition:border-color .15s, box-shadow .15s; }
-        input[type=text]::placeholder { color:#334155; }
-        input[type=text]:focus { outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(249,115,22,.12); }
-        input[type=text].found { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.12); }
-        .field-hint { font-size:.7rem; color:#334155; line-height:1.5; }
-
-        .stores-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
-        .stores-count { font-size:.78rem; color:var(--muted); }
-        .stores-count strong { color:var(--orange); }
-        .btn-select-all { background:none; border:none; font-family:inherit; font-size:.75rem; font-weight:700; color:var(--orange); cursor:pointer; }
-        .stores-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.6rem; }
-        .store-cb { display:none; }
-        .store-tile { display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding:.7rem 1rem; border-radius:12px; background:rgba(2,6,23,.7); border:1px solid rgba(51,65,85,.5); font-size:.82rem; font-weight:600; color:#94a3b8; cursor:pointer; user-select:none; transition:border-color .15s, background .15s, color .15s; }
-        .store-cb:checked + .store-tile { border-color:var(--orange); background:rgba(249,115,22,.08); color:var(--text); }
-        .check-dot { width:8px; height:8px; border-radius:50%; border:2px solid #334155; flex-shrink:0; transition:background .15s, border-color .15s; }
-        .store-cb:checked + .store-tile .check-dot { background:var(--orange); border-color:var(--orange); }
-
-        .error-box { display:none; align-items:center; gap:.6rem; padding:.85rem 1rem; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.25); border-radius:12px; font-size:.82rem; color:#f87171; margin-bottom:1rem; }
-        .error-box.visible { display:flex; }
-        .error-box svg { width:15px; height:15px; flex-shrink:0; }
-
-        .btn-submit { width:100%; padding:1rem; display:flex; align-items:center; justify-content:center; gap:.6rem; background:var(--orange); color:#fff; font-family:inherit; font-size:.95rem; font-weight:800; border:none; border-radius:14px; cursor:pointer; transition:background .15s, transform .15s, box-shadow .15s; box-shadow:0 8px 28px rgba(249,115,22,.3); }
-        .btn-submit:hover:not(:disabled) { background:#ea6d0e; transform:translateY(-1px); }
-        .btn-submit:disabled { opacity:.5; pointer-events:none; }
-        .spinner-svg { animation:spin 0.8s linear infinite; display:none; }
-        .btn-submit.loading .spinner-svg { display:block; }
-        .btn-submit.loading .btn-icon { display:none; }
-        @keyframes spin { to{transform:rotate(360deg);} }
-    </style>
-</head>
-<body>
-    <div class="bg-layer"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
-    <div class="grid-overlay"></div>
-
-    <nav>
-        <div class="nav-inner">
-            <a href="/dashboard" class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-                </div>
-                <span class="logo-text">afilibot</span>
-            </a>
-            <a href="/dashboard" class="back-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                Dashboard
-            </a>
-        </div>
-    </nav>
-
-    <div class="page">
-        <div class="page-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-            Novo bot
-        </div>
-        <h1 class="page-title">Configure seu robô</h1>
-        <p class="page-sub">Adicione o bot ao seu grupo do Telegram e preencha os dados abaixo para ativar a automação.</p>
-
-        <!-- Passo 1 -->
-        <div class="step-box">
-            <div class="step-title">
-                <span class="step-num">1</span>
-                Adicione o bot ao seu grupo do Telegram
-            </div>
-
-            <a href="/api/telegram/add-to-group" target="_blank" class="btn-add-group" id="btn-add-group" onclick="onAddClicked()">
-                <!-- Telegram icon -->
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.1 14.226l-2.94-.918c-.64-.203-.654-.64.136-.954l11.5-4.432c.533-.194 1.001.131.766.326z"/></svg>
-                Adicionar bot ao grupo
-            </a>
-
-            <p class="hint-text">Ao clicar, o Telegram abrirá para você selecionar o grupo. Depois volte aqui.</p>
-
-            <!-- Estados -->
-            <div class="status-row status-waiting" id="status-waiting">
-                <span class="pulse"></span>
-                Aguardando o bot entrar no grupo...
-            </div>
-            <div class="status-row status-found" id="status-found">
-                <span class="dot-green"></span>
-                Bot detectado! Chat ID capturado automaticamente.
-            </div>
-        </div>
-
-        <!-- Passo 2 -->
-        <form id="bot-form">
-            <div class="form-section">
-                <div class="section-head">
-                    <div class="section-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    </div>
-                    <div>
-                        <div class="section-title">Telegram</div>
-                        <div class="section-sub">Dados do canal onde o bot vai enviar as ofertas</div>
-                    </div>
-                </div>
-                <div class="input-grid">
-                    <div class="field-wrap">
-                        <label class="field-label" for="chat_id">Chat ID <span>*</span></label>
-                        <div class="input-wrap">
-                            <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg></span>
-                            <input type="text" id="chat_id" placeholder="Detectando automaticamente..." required readonly>
-                        </div>
-                        <span class="field-hint">Preenchido automaticamente ao adicionar o bot ao grupo.</span>
-                    </div>
-                    <div class="field-wrap">
-                        <label class="field-label" for="affiliate_link">Link de Afiliado <em>(opcional)</em></label>
-                        <div class="input-wrap">
-                            <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
-                            <input type="text" id="affiliate_link" placeholder="seu_codigo_afiliado">
-                        </div>
-                        <span class="field-hint">Código ou URL do seu programa de afiliados.</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lojas -->
-            <div class="form-section">
-                <div class="section-head">
-                    <div class="section-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                    </div>
-                    <div>
-                        <div class="section-title">Lojas para monitorar</div>
-                        <div class="section-sub">Selecione quais lojas o bot deve acompanhar</div>
-                    </div>
-                </div>
-                <div class="stores-top">
-                    <span class="stores-count" id="count-label"><strong>0</strong> lojas selecionadas</span>
-                    <button type="button" class="btn-select-all" id="select-all">Selecionar todas</button>
-                </div>
-                <div class="stores-grid" id="store-grid"></div>
-            </div>
-
-            <div class="error-box" id="error-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-                <span id="error-text"></span>
-            </div>
-
-            <button type="submit" class="btn-submit" id="submit-btn" disabled>
-                <svg class="spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <span class="btn-txt">Ativar robô</span>
-            </button>
-        </form>
-    </div>
-
+    <title>Configurar Novo Robô | afilibot</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script>
-        const params = new URLSearchParams(window.location.search);
-        if (params.get("payment") === "success") {
-            checkPaymentConfirmed();
-        }
-
-        async function checkPaymentConfirmed() {
-            document.body.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#020617;color:#f1f5f9;font-family:sans-serif;gap:1rem;">
-                    <div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#f97316;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-                    <p style="color:#64748b;">Confirmando seu pagamento...</p>
-                    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-                </div>
-            `;
-            const interval = setInterval(async () => {
-                const res  = await fetch("/api/subscription/status");
-                const data = await res.json();
-                if (data.status === "active") {
-                    clearInterval(interval);
-                    window.location.href = "/createbot";
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B1120',
+                            card: '#111827',
+                            primary: '#10B981',
+                            hover: '#059669',
+                            accent: '#6366F1',
+                            purple: '#8B5CF6',
+                        }
+                    }
                 }
-            }, 3000);
-            setTimeout(() => { clearInterval(interval); window.location.href = "/dashboard"; }, 60000);
-        }
-
-        // ── Carrega lojas do backend (não mais hardcoded) ─────────────────────
-        const grid       = document.getElementById('store-grid');
-        const countLabel = document.getElementById('count-label');
-
-        async function loadStores() {
-            try {
-                const res    = await fetch('/api/stores');
-                const stores = await res.json();
-
-                stores.forEach(({ brand }) => {
-                    const id = 'store-' + brand.replace(/\s/g, '-').toLowerCase();
-                    grid.insertAdjacentHTML('beforeend',
-                        `<label>
-                            <input type="checkbox" class="store-cb" id="${id}" value="${brand}">
-                            <span class="store-tile">${brand}<span class="check-dot"></span></span>
-                        </label>`
-                    );
-                });
-
-                document.querySelectorAll('.store-cb').forEach(cb =>
-                    cb.addEventListener('change', updateCount)
-                );
-            } catch (e) {
-                grid.innerHTML = '<p style="color:#64748b;font-size:.8rem;">Erro ao carregar lojas.</p>';
             }
         }
+    </script>
 
-        function updateCount() {
-            const n = document.querySelectorAll('.store-cb:checked').length;
-            countLabel.innerHTML = '<strong>' + n + '</strong> loja' + (n !== 1 ? 's' : '') + ' selecionada' + (n !== 1 ? 's' : '');
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #0B1120;
+            color: #F3F4F6;
         }
 
-        loadStores();
+        .bg-fx-container {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+        }
+        .glow-bg {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(11,17,32,0) 70%);
+            top: -100px; left: 50%; transform: translateX(-50%);
+        }
 
-        document.getElementById('select-all').addEventListener('click', () => {
-            const all       = document.querySelectorAll('.store-cb');
-            const allChecked = [...all].every(c => c.checked);
-            all.forEach(c => c.checked = !allChecked);
-            document.getElementById('select-all').textContent = allChecked ? 'Selecionar todas' : 'Desmarcar todas';
-            updateCount();
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .store-cb:checked + div, .cat-cb:checked + div {
+            border-color: #10B981;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        .store-cb:checked + div .check-icon, .cat-cb:checked + div .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .store-cb:checked + div .store-name, .cat-cb:checked + div .cat-name {
+            color: white;
+        }
+
+        .btn-loading { pointer-events: none; opacity: 0.8; }
+        .spinner { animation: spin 1s linear infinite; display: none; }
+        .btn-loading .spinner { display: inline-block; }
+        .btn-loading .btn-text, .btn-loading .btn-icon { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .ml-toggle:checked + .ml-toggle-bg { background-color: #10B981; }
+        .ml-toggle:checked + .ml-toggle-bg .ml-toggle-dot { transform: translateX(100%); border-color: white; }
+    </style>
+</head>
+<body class="font-body antialiased flex h-screen overflow-hidden">
+
+    <div class="bg-fx-container">
+        <div class="glow-bg"></div>
+    </div>
+
+    <!-- Sidebar Lateral -->
+    <aside class="w-64 flex-shrink-0 glass-card border-r border-white/5 flex flex-col justify-between hidden md:flex z-20 h-full relative">
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-6 border-b border-white/5 sticky top-0 bg-[#0B1120]/80 backdrop-blur-md z-10">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-9 h-9 bg-gradient-to-br from-brand-primary to-emerald-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="font-display font-extrabold text-xl tracking-tight text-white">afilibot</span>
+                </a>
+            </div>
+
+            <div class="p-4 space-y-1">
+                <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white font-medium transition">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    Visão Geral
+                </a>
+                <a href="/createbot" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-brand-primary/10 text-brand-primary font-semibold border-r-2 border-brand-primary transition">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    Novo Robô
+                </a>
+                <a href="/subscription" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white font-medium transition">
+                    <i data-lucide="credit-card" class="w-5 h-5"></i>
+                    Assinatura
+                </a>
+            </div>
+            
+            <div class="px-4 mt-2">
+                <div class="flex items-center justify-between px-3 mb-2 mt-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Meus Robôs</p>
+                </div>
+                <div class="space-y-1" id="sidebar-bots-list">
+                    <p class="text-[11px] text-gray-500 px-3">Crie seu primeiro robô.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-white/5 bg-[#0B1120]/80 backdrop-blur-md">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 mb-3">
+                <div id="user-initials" class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center font-display font-bold text-white shadow-inner flex-shrink-0">
+                    --
+                </div>
+                <div class="overflow-hidden">
+                    <p id="user-name" class="text-sm font-bold text-white truncate">Carregando...</p>
+                    <p id="user-email" class="text-xs text-gray-400 truncate">...</p>
+                </div>
+            </div>
+            <a href="/auth/logout" class="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                Sair da conta
+            </a>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 h-full overflow-y-auto relative z-10">
+        
+        <header class="md:hidden glass-card border-b border-white/5 p-4 flex items-center justify-between sticky top-0 z-30">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-lg text-white">afilibot</span>
+            </a>
+            <a href="/dashboard" class="text-sm font-semibold text-gray-400"><i data-lucide="menu" class="w-6 h-6"></i></a>
+        </header>
+
+        <div class="p-6 md:p-10 max-w-5xl mx-auto space-y-8 pb-24">
+            
+            <div>
+                <a href="/dashboard" class="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-white transition uppercase tracking-widest mb-4">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Voltar ao Dashboard
+                </a>
+                <h1 class="font-display text-3xl md:text-4xl font-extrabold text-white">Configurar Automação</h1>
+                <p class="text-gray-400 text-sm mt-2 max-w-2xl">Defina onde o seu robô vai atuar e quais marcas ele deve minerar. O sistema fará todo o trabalho pesado de encontrar os descontos.</p>
+            </div>
+
+            <form id="bot-form" class="space-y-6">
+                
+                <!-- Passo 1: Plataforma -->
+                <div class="glass-card rounded-2xl border border-white/5 p-6 md:p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white font-bold text-sm">1</div>
+                        <div>
+                            <h2 class="font-display text-xl font-bold text-white">Destino das Ofertas</h2>
+                            <p class="text-xs text-gray-400">Onde a sua audiência está?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="platform" value="telegram" class="sr-only peer" checked>
+                            <div class="p-5 rounded-xl border-2 border-white/10 bg-[#0B1120] peer-checked:border-[#229ED9] peer-checked:bg-[#229ED9]/5 transition flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-[#229ED9]/20 flex items-center justify-center shrink-0">
+                                    <svg viewBox="0 0 24 24" fill="#229ED9" class="w-5 h-5"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.1 14.226l-2.94-.918c-.64-.203-.654-.64.136-.954l11.5-4.432c.533-.194 1.001.131.766.326z"/></svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold mb-1">Telegram</h3>
+                                    <p class="text-xs text-gray-400">Integração nativa com Canais e Grupos.</p>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="relative cursor-not-allowed opacity-60">
+                            <input type="radio" name="platform" value="whatsapp" class="sr-only peer" disabled>
+                            <div class="p-5 rounded-xl border-2 border-white/5 bg-[#0B1120] transition flex items-start gap-4 relative overflow-hidden">
+                                <div class="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center shrink-0">
+                                    <i data-lucide="message-circle" class="w-5 h-5 text-[#25D366]"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold mb-1">WhatsApp</h3>
+                                    <p class="text-xs text-gray-400">Disparo automático em Grupos.</p>
+                                </div>
+                                <div class="absolute top-0 right-0 bg-[#25D366] text-black text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">EM BREVE</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Passo 2: Conexão -->
+                <div class="glass-card rounded-2xl border border-white/5 p-6 md:p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white font-bold text-sm">2</div>
+                        <div>
+                            <h2 class="font-display text-xl font-bold text-white">Vincular Robô</h2>
+                            <p class="text-xs text-gray-400">Autorize nosso sistema a postar por você.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#0B1120] border border-white/5 rounded-xl p-6">
+                        <div class="flex flex-col md:flex-row items-center gap-6">
+                            <div class="flex-1 text-center md:text-left">
+                                <h3 class="text-white font-semibold mb-2">Adicione o bot ao seu Canal/Grupo</h3>
+                                <p class="text-sm text-gray-400 mb-4">Clique no botão para abrir o Telegram. Você deve adicionar o robô como <strong>Administrador</strong> para habilitar as postagens.</p>
+                                
+                                <div id="status-idle" class="flex items-center justify-center md:justify-start gap-2 text-sm text-gray-500">
+                                    <i data-lucide="info" class="w-4 h-4"></i> Aguardando conexão...
+                                </div>
+                                
+                                <div id="status-waiting" class="hidden items-center justify-center md:justify-start gap-2 text-sm text-blue-400 font-medium">
+                                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procurando o bot no seu grupo...
+                                </div>
+                                
+                                <div id="status-found" class="hidden items-center justify-center md:justify-start gap-2 text-sm text-brand-primary font-medium bg-brand-primary/10 w-fit px-3 py-1.5 rounded-lg border border-brand-primary/20 mx-auto md:mx-0">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Canal detectado com sucesso!
+                                </div>
+                            </div>
+                            
+                            <div class="w-full md:w-auto flex-shrink-0">
+                                <a href="/api/telegram/add-to-group" target="_blank" onclick="onAddClicked()" class="w-full flex items-center justify-center gap-2 bg-[#229ED9] hover:bg-[#1a8bbf] text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-[#229ED9]/20 whitespace-nowrap">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.1 14.226l-2.94-.918c-.64-.203-.654-.64.136-.954l11.5-4.432c.533-.194 1.001.131.766.326z"/></svg>
+                                    Adicionar Bot
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-white/5">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ID de Destino (Chat ID)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="hash" class="w-4 h-4 text-gray-600"></i>
+                                </div>
+                                <input type="text" id="chat_id" placeholder="Autopreenchido após autorização..." readonly
+                                    class="w-full bg-[#111827] border border-white/5 rounded-xl pl-10 pr-4 py-3 text-gray-400 placeholder-gray-600 focus:outline-none transition">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passo 3: Regras e Lojas -->
+                <div class="glass-card rounded-2xl border border-white/5 p-6 md:p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white font-bold text-sm">3</div>
+                        <div class="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="font-display text-xl font-bold text-white">Curadoria de Ofertas</h2>
+                                <p class="text-xs text-gray-400">Defina de onde o robô deve extrair as ofertas.</p>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-lg text-center">
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Lojas no Plano</p>
+                                <p class="text-lg font-black text-white leading-none"><span id="total-count-label" class="text-brand-primary">0</span> <span class="text-gray-500 text-sm">/ 3</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        
+                        <!-- Link Afiliado -->
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-2">Seu Link Base de Afiliado <span class="text-gray-500 font-normal text-xs ml-2">(Opcional)</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="link" class="w-4 h-4 text-gray-500"></i>
+                                </div>
+                                <input type="text" id="affiliate_link" placeholder="Ex: https://afiliado.loja.com/?ref=SEU_CODIGO"
+                                    class="w-full bg-[#0B1120] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition shadow-inner">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Usado para gerar comissões em lojas que suportam parâmetros na URL.</p>
+                        </div>
+
+                        <!-- Links de Afiliado por Loja (preenchido dinamicamente) -->
+                        <div id="affiliate-links-section" class="hidden">
+                            <div class="flex items-center gap-2 mb-4">
+                                <i data-lucide="link" class="w-4 h-4 text-brand-primary"></i>
+                                <label class="text-sm font-bold text-white">Links de Afiliado <span class="text-gray-500 font-normal text-xs ml-1">(Opcional — um por loja selecionada)</span></label>
+                            </div>
+                            <div id="affiliate-links-container" class="space-y-3"></div>
+                            <p class="text-xs text-gray-500 mt-3">Cada loja pode ter seu próprio link de afiliado para rastreamento de comissões.</p>
+                        </div>
+
+                        <!-- Mercado Livre -->
+                        <div class="bg-[#0B1120] border border-white/10 rounded-xl overflow-hidden">
+                            <div class="p-5 flex items-center justify-between bg-gradient-to-r from-yellow-400/5 to-transparent">
+                                <div>
+                                    <h3 class="font-bold text-white flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded bg-yellow-400/10 flex items-center justify-center text-yellow-400 shrink-0"><i data-lucide="monitor-smartphone" class="w-4 h-4"></i></div>
+                                        Mercado Livre
+                                    </h3>
+                                    <p class="text-xs text-gray-400 mt-1 ml-10">Ative para configurar as categorias de tecnologia que deseja monitorar. <strong class="text-gray-300">(Vale como 1 loja do seu plano)</strong></p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-ml" class="sr-only ml-toggle">
+                                    <div class="ml-toggle-bg w-12 h-7 bg-gray-700 rounded-full border border-gray-600 transition-colors duration-300 relative">
+                                        <div class="ml-toggle-dot absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform duration-300"></div>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div id="ml-categories-wrapper" class="p-5 border-t border-white/5 bg-black/20 opacity-40 pointer-events-none transition-opacity duration-300">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Selecione as Categorias</span>
+                                    <button type="button" id="btn-select-all-ml" class="text-xs font-bold text-brand-primary hover:text-brand-hover transition">Selecionar Todas</button>
+                                </div>
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2" id="grid-ml"></div>
+                            </div>
+                        </div>
+
+                        <!-- Marcas Streetwear -->
+                        <div>
+                            <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-400"><i data-lucide="shopping-bag" class="w-4 h-4"></i></div>
+                                    <h3 class="font-bold text-white">Marcas de Streetwear <span class="text-gray-500 text-xs font-normal ml-1">(Cada marca vale como 1 loja)</span></h3>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="grid-streetwear"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Passo 4: Automação Avançada (Horários de Envio) -->
+                <div id="step4-card" class="glass-card rounded-2xl border border-white/5 p-6 md:p-8 relative overflow-hidden group">
+                    
+                    <!-- Overlay de Bloqueio (Feature Teasing) -->
+                    <div id="step4-lock" class="absolute inset-0 bg-[#0B1120]/70 backdrop-blur-sm z-20 flex flex-col items-center justify-center transition-all duration-300">
+                        <div class="bg-[#111827] border border-[#10B981]/30 p-5 rounded-2xl text-center shadow-2xl max-w-sm mx-4 transform transition-transform group-hover:scale-105">
+                            <div class="w-12 h-12 bg-[#10B981]/20 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                                <i data-lucide="lock" class="w-6 h-6 text-[#10B981]"></i>
+                            </div>
+                            <h3 class="text-white font-bold mb-2">Exclusivo Plano Anual</h3>
+                            <p class="text-xs text-gray-400 mb-5 leading-relaxed">Agende os disparos exatamente para a hora em que o seu grupo está mais ativo.</p>
+                            <a href="/subscription" class="inline-block bg-brand-primary hover:bg-brand-hover text-white text-sm font-bold px-6 py-2.5 rounded-xl transition shadow-lg shadow-[#10B981]/20">
+                                Fazer Upgrade
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Cabeçalho Passo 4 -->
+                    <div class="flex items-center gap-4 mb-6 opacity-40" id="step4-header">
+                        <div class="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white font-bold text-sm">4</div>
+                        <div class="flex-1 flex items-center justify-between">
+                            <div>
+                                <h2 class="font-display text-xl font-bold text-white flex items-center gap-2">
+                                    Agendamento <i data-lucide="sparkles" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                </h2>
+                                <p class="text-xs text-gray-400">Controle de horários de envio.</p>
+                            </div>
+                            <span id="step4-badge" class="hidden text-xs font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-3 py-1 rounded-full">Plano Anual</span>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo (Horários de Envio) -->
+                    <div id="step4-content" class="opacity-40 pointer-events-none select-none">
+                        <div class="bg-[#0B1120] border border-white/5 rounded-xl p-5">
+                            <h3 class="text-sm font-bold text-white mb-1">Horários de Disparo</h3>
+                            <p class="text-xs text-gray-400 mb-4">Defina até 2 horários por dia para o robô efetuar os disparos.</p>
+                            
+                            <div class="flex flex-wrap items-center gap-4">
+                                <div class="flex items-center gap-3 bg-[#111827] border border-white/10 px-4 py-2.5 rounded-xl focus-within:border-brand-primary transition">
+                                    <i data-lucide="clock" class="w-4 h-4 text-gray-500"></i>
+                                    <input type="time" id="schedule_time_1" value="12:00" class="bg-transparent text-white font-bold focus:outline-none w-20">
+                                </div>
+                                <div class="flex items-center gap-3 bg-[#111827] border border-white/10 px-4 py-2.5 rounded-xl focus-within:border-brand-primary transition">
+                                    <i data-lucide="clock" class="w-4 h-4 text-gray-500"></i>
+                                    <input type="time" id="schedule_time_2" placeholder="--:--" class="bg-transparent text-gray-500 font-bold focus:outline-none w-20">
+                                </div>
+                                <span class="text-xs font-semibold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-lg border border-brand-primary/20">Horário Local (Brasília)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Erro -->
+                <div id="error-box" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-sm p-4 rounded-xl items-start gap-3">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                    <span id="error-text">Mensagem de erro</span>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" id="submit-btn" class="w-full bg-brand-primary text-white font-bold text-lg py-5 rounded-2xl hover:bg-brand-hover transition duration-300 flex items-center justify-center gap-3 shadow-xl shadow-brand-primary/20 transform hover:-translate-y-1 mt-6">
+                    <i data-lucide="loader-2" class="w-6 h-6 spinner text-white"></i>
+                    <span class="btn-text">Ativar Automação</span>
+                    <i data-lucide="zap" class="w-5 h-5 btn-icon fill-current text-yellow-300"></i>
+                </button>
+
+            </form>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // ── Carrega usuário e verifica plano ─────────────────────────────────
+        let userSubscriptionPlan = null;
+
+        async function loadUserSidebar() {
+            try {
+                const res  = await fetch('/api/dashboard/me');
+                const user = await res.json();
+                if (user.error) return;
+                document.getElementById('user-name').textContent     = user.name  || 'Usuário';
+                document.getElementById('user-email').textContent    = user.email || '';
+                document.getElementById('user-initials').textContent = (user.name || 'U').trim().charAt(0).toUpperCase();
+
+                userSubscriptionPlan = user.subscription_plan;
+                if (userSubscriptionPlan === 'annual') {
+                    unlockStep4();
+                }
+            } catch (e) {}
+        }
+
+        function unlockStep4() {
+            document.getElementById('step4-lock').classList.add('hidden');
+            const content = document.getElementById('step4-content');
+            content.classList.remove('opacity-40', 'pointer-events-none', 'select-none');
+            const header = document.getElementById('step4-header');
+            header.classList.remove('opacity-40');
+            document.getElementById('step4-badge').classList.remove('hidden');
+        }
+
+        loadUserSidebar();
+
+        // ── Dados das Lojas ──────────────────────────────────────────────────
+        const ML_TECH_CATEGORIES = {
+            "ML-Games":           "Games",
+            "ML-Celulares":       "Celulares",
+            "ML-Televisores":     "Televisores",
+            "ML-Notebooks":       "Notebooks",
+            "ML-TVs":             "TVs",
+            "ML-Fones":           "Fones",
+            "ML-Câmeras":         "Câmeras",
+            "ML-Tablets":         "Tablets",
+            "ML-Cameras":         "Cameras",
+            "ML-Computacao":      "Computação",
+            "ML-Audio":           "Áudio",
+            "ML-Cameras-Drones":  "Cameras e Drones",
+            "ML-Eletronicos":     "Eletrônicos",
+            "ML-Eletrodomestico": "Eletrodoméstico",
+        };
+
+        const STREETWEAR_STORES = [
+            "Mad Enlatados", "New", "Piet", "Pace", "Carnan", "1of1", "EghoStudios", 
+            "Sufgang", "CienaLab", "Anty", "IceCompany", "Brunxind", "Overstreets", 
+            "Basyc", "Bussfly", "Captive Club", "Malan", "ggar", "Places Wo", 
+            "Delafoe", "SteetApparel", "Wanted", "YungCeo", "Jet Company", 
+            "Dest studios", "TakeOff"
+        ];
+
+        // ── Renderização ─────────────────────────────────────────────────────
+        function renderMLCategories() {
+            const container = document.getElementById('grid-ml');
+            let html = '';
+            Object.entries(ML_TECH_CATEGORIES).forEach(([key, label]) => {
+                html += `
+                    <label class="relative cursor-pointer group">
+                        <input type="checkbox" class="cat-cb sr-only peer" value="${key}">
+                        <div class="p-2 bg-[#0B1120] border border-white/10 rounded-lg transition duration-200 peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 flex items-center justify-between group-hover:border-white/20">
+                            <span class="cat-name text-[11px] font-medium text-gray-400 transition-colors truncate pr-2">${label}</span>
+                            <i data-lucide="check" class="check-icon w-3 h-3 text-brand-primary opacity-0 transition-opacity scale-50"></i>
+                        </div>
+                    </label>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderStreetwearStores() {
+            const container = document.getElementById('grid-streetwear');
+            let html = '';
+            STREETWEAR_STORES.forEach(brand => {
+                const id = 'store-' + brand.replace(/\s/g, '-').toLowerCase();
+                html += `
+                    <label class="relative cursor-pointer group h-full store-label" data-brand="${brand}">
+                        <input type="checkbox" class="store-cb sr-only peer" id="${id}" value="${brand}">
+                        <div class="h-full p-3 bg-[#0B1120] border border-white/5 rounded-xl transition duration-200 peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 flex items-center justify-between group-hover:border-white/10">
+                            <span class="store-name text-xs font-medium text-gray-400 transition-colors truncate pr-2">${brand}</span>
+                            <div class="w-4 h-4 rounded-full border border-gray-600 flex items-center justify-center transition-all shrink-0">
+                                <i data-lucide="check" class="check-icon w-3 h-3 text-white opacity-0 transition-opacity scale-50"></i>
+                            </div>
+                        </div>
+                    </label>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        renderMLCategories();
+        renderStreetwearStores();
+        lucide.createIcons();
+
+        // ── Limite de Lojas ──────────────────────────────────────────────────
+        const STORE_LIMIT = 3;
+        const countLabel  = document.getElementById('total-count-label');
+
+        function getTotalSelected() {
+            const mlCount    = document.getElementById('toggle-ml').checked ? 1 : 0;
+            const storeCount = document.querySelectorAll('.store-cb:checked').length;
+            return mlCount + storeCount;
+        }
+
+        function enforceLimit() {
+            const total       = getTotalSelected();
+            const atLimit     = total >= STORE_LIMIT;
+            const mlChecked   = document.getElementById('toggle-ml').checked;
+
+            const mlToggleEl = document.getElementById('toggle-ml');
+            if (atLimit && !mlChecked) {
+                mlToggleEl.disabled = true;
+                mlToggleEl.closest('label').classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                mlToggleEl.disabled = false;
+                mlToggleEl.closest('label').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            document.querySelectorAll('.store-cb').forEach(cb => {
+                const label = cb.closest('.store-label');
+                if (atLimit && !cb.checked) {
+                    cb.disabled = true;
+                    label.classList.add('opacity-40', 'cursor-not-allowed');
+                    label.classList.remove('cursor-pointer');
+                } else {
+                    cb.disabled = false;
+                    label.classList.remove('opacity-40', 'cursor-not-allowed');
+                    label.classList.add('cursor-pointer');
+                }
+            });
+
+            countLabel.textContent = total;
+            if (total >= STORE_LIMIT) {
+                countLabel.className = 'text-yellow-400';
+            } else if (total > 0) {
+                countLabel.className = 'text-brand-primary';
+            } else {
+                countLabel.className = 'text-white';
+            }
+
+            updateAffiliateLinks();
+        }
+
+        // ── Links de Afiliado por Loja ────────────────────────────────────────
+        const affiliateValues = {};
+
+        function getSelectedStoreNames() {
+            const names = [];
+            if (document.getElementById('toggle-ml').checked) names.push('Mercado Livre');
+            document.querySelectorAll('.store-cb:checked').forEach(cb => names.push(cb.value));
+            return names;
+        }
+
+        function updateAffiliateLinks() {
+            const section   = document.getElementById('affiliate-links-section');
+            const container = document.getElementById('affiliate-links-container');
+            const stores    = getSelectedStoreNames();
+
+            if (stores.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+
+            container.querySelectorAll('input[data-store]').forEach(input => {
+                affiliateValues[input.dataset.store] = input.value;
+            });
+
+            container.innerHTML = stores.map(store => `
+                <div class="flex items-center gap-3 bg-[#0B1120] border border-white/10 rounded-xl px-4 py-3 focus-within:border-brand-primary transition">
+                    <span class="text-xs font-bold text-gray-400 whitespace-nowrap min-w-[110px] truncate">${store}</span>
+                    <div class="w-px h-4 bg-white/10 shrink-0"></div>
+                    <input
+                        type="text"
+                        data-store="${store}"
+                        class="affiliate-input flex-1 bg-transparent text-white text-sm placeholder-gray-600 focus:outline-none"
+                        placeholder="https://... (opcional)"
+                        value="${affiliateValues[store] || ''}"
+                    >
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // ── Mercado Livre Toggle ─────────────────────────────────────────────
+        const mlToggle   = document.getElementById('toggle-ml');
+        const mlWrapper  = document.getElementById('ml-categories-wrapper');
+        const catCheckboxes = () => document.querySelectorAll('.cat-cb');
+
+        mlToggle.addEventListener('change', (e) => {
+            if (e.target.checked && getTotalSelected() >= STORE_LIMIT) {
+                e.target.checked = false;
+                return;
+            }
+            if (e.target.checked) {
+                mlWrapper.classList.remove('opacity-40', 'pointer-events-none');
+                const anyChecked = Array.from(catCheckboxes()).some(cb => cb.checked);
+                if (!anyChecked) catCheckboxes().forEach(cb => cb.checked = true);
+            } else {
+                mlWrapper.classList.add('opacity-40', 'pointer-events-none');
+                catCheckboxes().forEach(cb => cb.checked = false);
+            }
+            enforceLimit();
         });
 
-        // ── Polling — inicia ao clicar em "Adicionar bot ao grupo" ───────────
+        document.getElementById('btn-select-all-ml').addEventListener('click', () => {
+            const all        = catCheckboxes();
+            const allChecked = Array.from(all).every(c => c.checked);
+            all.forEach(c => c.checked = !allChecked);
+        });
+
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('cat-cb')) {
+                const anyChecked = Array.from(catCheckboxes()).some(c => c.checked);
+                if (!anyChecked) {
+                    mlToggle.checked = false;
+                    mlWrapper.classList.add('opacity-40', 'pointer-events-none');
+                }
+                enforceLimit();
+            }
+        });
+
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('store-cb')) enforceLimit();
+        });
+
+        // ── Polling Telegram ─────────────────────────────────────────────────
         let pollInterval = null;
 
         function onAddClicked() {
-            document.getElementById('status-waiting').classList.add('visible');
+            document.getElementById('status-idle').classList.add('hidden');
+            document.getElementById('status-waiting').classList.remove('hidden');
+            document.getElementById('status-waiting').classList.add('flex');
+            document.getElementById('status-found').classList.add('hidden');
 
-            if (pollInterval) return;
-            // 3s — rápido o suficiente para o usuário perceber
+            if (pollInterval) clearInterval(pollInterval);
+
             pollInterval = setInterval(async () => {
                 try {
                     const res  = await fetch('/api/telegram/chat-id');
@@ -334,67 +668,91 @@
 
                         const input = document.getElementById('chat_id');
                         input.value = data.chat_id;
-                        input.classList.add('found');
+                        input.classList.add('border-brand-primary', 'text-white');
+                        input.classList.remove('border-white/5', 'text-gray-400');
 
-                        document.getElementById('status-waiting').classList.remove('visible');
-                        document.getElementById('status-found').classList.add('visible');
-                        document.getElementById('submit-btn').disabled = false;
+                        document.getElementById('status-waiting').classList.add('hidden');
+                        document.getElementById('status-found').classList.remove('hidden');
+                        document.getElementById('status-found').classList.add('flex');
                     }
-                } catch (e) { /* ignora erro de rede */ }
+                } catch (e) { }
             }, 3000);
         }
 
-        // ── Submit ────────────────────────────────────────────────────────────
+        // ── Submit ───────────────────────────────────────────────────────────
         document.getElementById('bot-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const errorBox  = document.getElementById('error-box');
             const errorText = document.getElementById('error-text');
             const btn       = document.getElementById('submit-btn');
-            errorBox.classList.remove('visible');
+            errorBox.classList.add('hidden');
+            errorBox.classList.remove('flex');
 
             const chatId = document.getElementById('chat_id').value.trim();
             if (!chatId) {
-                errorText.textContent = 'Adicione o bot ao grupo para detectar o Chat ID automaticamente.';
-                errorBox.classList.add('visible');
+                errorText.textContent = 'Adicione o bot ao grupo no Passo 2 para gerar o Chat ID.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
                 return;
             }
 
-            const selected = document.querySelectorAll('.store-cb:checked');
-            if (!selected.length) {
-                errorText.textContent = 'Selecione ao menos uma loja para monitorar.';
-                errorBox.classList.add('visible');
+            const selectedBrands = [];
+            if (mlToggle.checked) {
+                document.querySelectorAll('.cat-cb:checked').forEach(cb => selectedBrands.push(cb.value));
+            }
+            document.querySelectorAll('.store-cb:checked').forEach(cb => selectedBrands.push(cb.value));
+
+            if (selectedBrands.length === 0) {
+                errorText.textContent = 'Selecione ao menos o Mercado Livre ou uma marca para monitorar.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
                 return;
             }
 
-            // Manda lista de brands — backend espera { chat_id, brands: [...] }
-            const brands = [...selected].map(cb => cb.value);
+            const affiliateLinks = {};
+            document.querySelectorAll('.affiliate-input').forEach(input => {
+                const val = input.value.trim();
+                if (val) affiliateLinks[input.dataset.store] = val;
+            });
 
-            btn.classList.add('loading');
-            btn.disabled = true;
+            btn.classList.add('btn-loading');
 
             try {
+                // Horários de disparo (apenas plano anual)
+                const scheduleTimes = [];
+                const t1 = document.getElementById('schedule_time_1')?.value?.trim();
+                const t2 = document.getElementById('schedule_time_2')?.value?.trim();
+                if (userSubscriptionPlan === 'annual') {
+                    if (t1) scheduleTimes.push(t1);
+                    if (t2) scheduleTimes.push(t2);
+                }
+
                 const res = await fetch('/api/setup-bot', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({
-                        chat_id:        chatId,
-                        brands:         brands,
-                        affiliate_link: document.getElementById('affiliate_link').value.trim() || null,
+                        chat_id:          chatId,
+                        brands:           selectedBrands,
+                        affiliate_links:  Object.keys(affiliateLinks).length > 0 ? affiliateLinks : null,
+                        schedule_times:   scheduleTimes.length > 0 ? scheduleTimes : null,
                     }),
                 });
 
                 if (!res.ok) {
                     const d = await res.json().catch(() => ({}));
-                    throw new Error(d.detail || 'Erro no servidor.');
+                    throw new Error(d.detail || 'Erro ao salvar o robô. Tente novamente.');
                 }
 
                 window.location.href = '/dashboard';
+
             } catch (err) {
-                errorText.textContent = err.message;
-                errorBox.classList.add('visible');
-                btn.classList.remove('loading');
-                btn.disabled = false;
+                errorText.textContent = err.message || 'Ocorreu um erro ao salvar o robô.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
+                btn.classList.remove('btn-loading');
+                btn.classList.replace('bg-brand-primary', 'bg-red-600');
+                setTimeout(() => btn.classList.replace('bg-red-600', 'bg-brand-primary'), 3000);
             }
         });
     </script>

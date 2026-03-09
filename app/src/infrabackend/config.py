@@ -34,6 +34,11 @@ GOOGLE_TOKEN_URL:str = os.getenv("GOOGLE_TOKEN_URL")
 GOOGLE_USERINFO:str  = os.getenv("GOOGLE_USERINFO")
 SCOPES: str           = os.getenv("SCOPES")
 
+#Mercado livre auth
+ML_MIN_DISCOUNT: float = float(os.getenv("ML_MIN_DISCOUNT", "10"))   # % mínimo de desconto
+ML_MAX_PER_CAT:  int   = int(os.getenv("ML_MAX_PER_CAT",   "100"))   # produtos por categoria
+
+
 #Lojas
 SHOPIFY_URLS : dict[str, str] = {
     "Mad Enlatados": "https://madenlatados.com.br/products.json?limit=250",
@@ -66,3 +71,38 @@ NUVEMSHOP_URLS : dict[str, str] = {
     "Dest studios":"https://www.deststudios.com.br/",
     "TakeOff":"https://takeoffcollection.com.br/",
 }
+
+ML_CATEGORIES: dict[str, str] = {
+    "ML-Monitor":           "monitor-led",
+    "ML-Notebook":          "notebook",
+    "ML-PC-Gamer":          "pc-gamer",
+    "ML-SSD":               "ssd",
+    "ML-Memória-RAM":       "memoria-ram",
+    "ML-Placa-de-Video":    "placa-de-video",
+    "ML-Processador":       "processador",
+    "ML-Fonte-PC":          "fonte-computador",
+    "ML-Gabinete":          "gabinete-computador",
+
+    "ML-Teclado":           "teclado-gamer",
+    "ML-Mouse":             "mouse-gamer",
+    "ML-Headset":           "headset-gamer",
+    "ML-Webcam":            "webcam",
+    "ML-Mousepad":          "mousepad-gamer",
+
+    "ML-Smartphone":        "smartphone",
+    "ML-Tablet":            "tablet",
+    "ML-Smartwatch":        "smartwatch",
+
+    "ML-Fone-Bluetooth":    "fone-ouvido-bluetooth",
+    "ML-Caixa-de-Som":      "caixa-de-som-bluetooth",
+    "ML-Camera-Digital":    "camera-digital",
+    "ML-Camera-Seguranca":  "camera-seguranca",
+
+    "ML-Smart-TV":          "smart-tv",
+    "ML-Projetor":          "projetor",
+
+    "ML-Roteador":          "roteador-wifi",
+    "ML-Switch":            "switch-rede",
+}
+
+ML_BASE_URL     = "https://lista.mercadolivre.com.br"
