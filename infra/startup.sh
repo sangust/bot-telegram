@@ -97,7 +97,7 @@ for i in $(seq 1 30); do
   sleep 5
 done
 
-if [ "${web_ready:-0}" -ne 1 ]; then
+if [ "$${web_ready:-0}" -ne 1 ]; then
   echo "afilibot web não ficou saudável a tempo" >&2
   exit 1
 fi
