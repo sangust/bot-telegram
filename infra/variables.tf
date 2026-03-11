@@ -7,7 +7,7 @@ variable "location" {
 variable "vm_size" {
   description = "Tamanho da VM Azure para rodar web, workers e serviços auxiliares"
   type        = string
-  default     = "Standard_B2as_v5"
+  default     = "Standard_B2ats_v2"
 }
 
 variable "worker_count" {
