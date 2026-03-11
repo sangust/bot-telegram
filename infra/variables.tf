@@ -1,13 +1,13 @@
 variable "location" {
   description = "Região do Azure onde os recursos serão criados"
   type        = string
-  default     = "eastus"
+  default     = "eastus2"
 }
 
 variable "vm_size" {
   description = "Tamanho da VM Azure para rodar web, workers e serviços auxiliares"
   type        = string
-  default     = "Standard_D2_v4"
+  default     = "Standard_D2as_v7"
 }
 
 variable "worker_count" {
