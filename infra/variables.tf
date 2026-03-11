@@ -1,7 +1,7 @@
 variable "location" {
   description = "Região do Azure onde os recursos serão criados"
   type        = string
-  default     = "eastus"
+  default     = "eastus2"
 }
 
 variable "vm_size" {
