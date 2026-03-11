@@ -164,4 +164,4 @@ jobs:
 
       - name: Terraform Apply
         working-directory: infra
-        run: terraform apply -auto-approve tfplan -var="vm_size=Standard_B2ats_v2"
+        run: terraform apply -auto-approve
