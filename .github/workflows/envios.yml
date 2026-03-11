@@ -34,7 +34,7 @@ jobs:
       TF_VAR_bot_token_1:            ${{ secrets.BOT_TOKEN_1 }}
       TF_VAR_bot_token_2:            ${{ secrets.BOT_TOKEN_2 }}
       TF_VAR_bot_token_3:            ${{ secrets.BOT_TOKEN_3 }}
-      TF_VAR_vm_size:                ${{ secrets.AZURE_VM_SIZE != '' && secrets.AZURE_VM_SIZE || 'Standard_B2as_v5' }}
+      TF_VAR_vm_size:                ${{ secrets.AZURE_VM_SIZE != '' && secrets.AZURE_VM_SIZE || 'Standard_B2s' }}
       TF_VAR_worker_count:           ${{ secrets.WORKER_COUNT != '' && secrets.WORKER_COUNT || '1' }}
 
     steps:
