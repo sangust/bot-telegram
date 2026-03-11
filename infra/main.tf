@@ -118,7 +118,7 @@ resource "azurerm_linux_virtual_machine" "afilibot" {
   resource_group_name = azurerm_resource_group.afilibot.name
   size                = var.vm_size
   admin_username      = "ubuntu"
-
+  zone                = "3"
   network_interface_ids = [
     azurerm_network_interface.afilibot.id
   ]
