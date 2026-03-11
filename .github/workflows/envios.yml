@@ -27,15 +27,15 @@ jobs:
       TF_VAR_google_client_id:       ${{ secrets.GOOGLE_CLIENT_ID }}
       TF_VAR_google_client_secret:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
       TF_VAR_google_redirect_uri:    ${{ secrets.GOOGLE_REDIRECT_URI }}
-      TF_VAR_abacatepay_api_key:     ${{ secrets.ABACATEPAY_API_KEY }}
-      TF_VAR_abacatepay_api_url:     ${{ secrets.ABACATEPAY_API_URL }}
-      TF_VAR_abacatepay_webhook_secret: ${{ secrets.ABACATEPAY_WEBHOOK_SECRET }}
+      TF_VAR_mercadopago_access_token: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+      TF_VAR_mercadopago_webhook_secret: ${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
+
       TF_VAR_base_url:               ${{ secrets.BASE_URL }}
       TF_VAR_bot_token_1:            ${{ secrets.BOT_TOKEN_1 }}
       TF_VAR_bot_token_2:            ${{ secrets.BOT_TOKEN_2 }}
       TF_VAR_bot_token_3:            ${{ secrets.BOT_TOKEN_3 }}
-      TF_VAR_vm_size:                ${{ secrets.AZURE_VM_SIZE != '' && secrets.AZURE_VM_SIZE || 'Standard_D2as_v5' }}
-      TF_VAR_worker_count:           ${{ secrets.WORKER_COUNT != '' && secrets.WORKER_COUNT || '3' }}
+      TF_VAR_vm_size:                ${{ secrets.AZURE_VM_SIZE != '' && secrets.AZURE_VM_SIZE || 'Standard_B2s' }}
+      TF_VAR_worker_count:           ${{ secrets.WORKER_COUNT != '' && secrets.WORKER_COUNT || '1' }}
 
     steps:
       - name: Checkout
@@ -50,15 +50,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      #- name: Build and push Docker image
-       # uses: docker/build-push-action@v6
-        #with:
-         # context: .
-          #file: ./Dockerfile
-          #push: true
-          #tags: |
-            #${{ secrets.DOCKERHUB_USERNAME }}/afilibot:latest
-            #${{ secrets.DOCKERHUB_USERNAME }}/afilibot:${{ github.sha }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/afilibot:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/afilibot:${{ github.sha }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

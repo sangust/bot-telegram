@@ -124,6 +124,12 @@
             <h2 id="overlay-title" class="font-display text-3xl md:text-4xl font-extrabold text-white mb-3">Aguardando Confirmação...</h2>
             <p id="overlay-text" class="text-gray-400 text-sm md:text-base max-w-md mx-auto">Estamos aguardando o processamento do pagamento. O seu acesso será liberado em instantes.</p>
         </div>
+
+        <!-- Botão de cancelar o overlay -->
+        <button onclick="closePaymentOverlay()" class="mt-8 px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-500 rounded-xl transition-all flex items-center gap-2">
+            <i data-lucide="x" class="w-4 h-4"></i>
+            Cancelar aguardo e voltar
+        </button>
     </div>
 
     <!-- Modal de Detalhes dos Planos -->
@@ -468,6 +474,24 @@
         let userWentToPay = false;
         let pollInterval  = null;
 
+        function closePaymentOverlay() {
+            sessionStorage.removeItem('payment_pending');
+            
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            
+            document.getElementById('payment-overlay').style.display = 'none';
+            
+            // Restaura o visual padrão caso o usuário inicie um novo checkout depois
+            document.getElementById('overlay-title').textContent = "Aguardando Confirmação...";
+            document.getElementById('overlay-title').className   = "font-display text-3xl md:text-4xl font-extrabold text-white mb-3";
+            document.getElementById('overlay-text').textContent  = "Estamos aguardando o processamento do pagamento. O seu acesso será liberado em instantes.";
+            document.getElementById('overlay-icon').innerHTML    = '<i data-lucide="shield-check" class="w-8 h-8"></i>';
+            lucide.createIcons(); // Recria o ícone caso tenha sido alterado
+        }
+
         function showPaymentOverlay() {
             document.getElementById('payment-overlay').style.display = 'flex';
             if (!pollInterval) startPolling();
@@ -486,7 +510,7 @@
                     overlayText.textContent  = "Não detectamos o pagamento. Se já pagou, aguarde alguns minutos e acesse o dashboard.";
                     overlayIcon.innerHTML    = '<i data-lucide="clock" class="w-10 h-10 text-yellow-400"></i>';
                     lucide.createIcons();
-                    setTimeout(() => { document.getElementById('payment-overlay').style.display = 'none'; }, 5000);
+                    setTimeout(() => { closePaymentOverlay(); }, 5000);
                 }
             }, 10 * 60 * 1000);
 
@@ -510,6 +534,20 @@
                         setTimeout(() => {
                             window.location.href = sessionStorage.getItem('post_payment_redirect') || "/createbot";
                         }, 2000);
+                    } 
+                    // Se o webhook do MP bater e constatar como cancelado/recusado:
+                    else if (data.status === "canceled" || data.status === "cancelled") {
+                        clearInterval(pollInterval);
+                        clearTimeout(maxWait);
+                        pollInterval = null;
+                        sessionStorage.removeItem('payment_pending');
+
+                        overlayTitle.textContent = "Pagamento Não Concluído";
+                        overlayText.textContent  = "Detectamos que o pagamento foi cancelado ou recusado. Você pode tentar novamente.";
+                        overlayIcon.innerHTML    = '<i data-lucide="x-circle" class="w-10 h-10 text-red-500"></i>';
+                        lucide.createIcons();
+
+                        setTimeout(() => { closePaymentOverlay(); }, 4000);
                     }
                 } catch(e) {}
             }, 3000);

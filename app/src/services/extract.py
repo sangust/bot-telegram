@@ -148,6 +148,7 @@ class Extractor:
 
         base_url     = base_url.rstrip("/")
         products_url = f"{base_url}/produtos/"
+        
 
         # Garante que a store existe — UMA vez por brand, fora do loop
         store = self._get_or_create_store(brand, base_url, Platform.nuvemshop)
@@ -158,8 +159,17 @@ class Extractor:
         with httpx.Client(timeout=10, follow_redirects=True) as client:
             while page <= 20:
                 try:
-                    response = client.get(f"{products_url}?page={page}")
-                    response.raise_for_status()
+                    if "wanted" in base_url:
+                        products_url = f"{base_url}/loja/"
+                        response = client.get(f"{products_url}")
+                        response.raise_for_status()
+                    elif "basyc" in base_url:
+                        products_url = f"{base_url}/"
+                        response = client.get(f"{products_url}")
+                        response.raise_for_status()
+                    else:
+                        response = client.get(f"{products_url}?page={page}")
+                        response.raise_for_status()
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code == 404:
                         break

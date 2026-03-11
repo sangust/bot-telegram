@@ -7,13 +7,13 @@ variable "location" {
 variable "vm_size" {
   description = "Tamanho da VM Azure para rodar web, workers e serviços auxiliares"
   type        = string
-  default     = "Standard_D2as_v5"
+  default     = "Standard_B2s"
 }
 
 variable "worker_count" {
   description = "Quantidade de containers worker da aplicação"
   type        = number
-  default     = 3
+  default     = 1
 }
 
 variable "ssh_public_key" {
@@ -75,21 +75,16 @@ variable "google_redirect_uri" {
   # GitHub Secret: TF_VAR_google_redirect_uri
 }
 
-variable "abacatepay_api_key" {
+variable "mercadopago_access_token" {
   type      = string
   sensitive = true
-  # GitHub Secret: TF_VAR_abacatepay_api_key
+  # GitHub Secret: TF_VAR_mercadopago_access_token
 }
 
-variable "abacatepay_api_url" {
-  type    = string
-  default = "https://api.abacatepay.com/v1"
-}
-
-variable "abacatepay_webhook_secret" {
+variable "mercadopago_webhook_secret" {
   type      = string
   sensitive = true
-  # GitHub Secret: TF_VAR_abacatepay_webhook_secret
+  # GitHub Secret: TF_VAR_mercadopago_webhook_secret
 }
 
 variable "base_url" {

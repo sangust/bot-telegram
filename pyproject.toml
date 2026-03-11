@@ -10,24 +10,21 @@ packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
 python = ">=3.12"
-httpx = "^0.28.1"
-pandas = "^2.2"
+httpx = {extras = ["http2"], version = "^0.28.1"}
 sqlalchemy = "^2.0.46"
 pydantic = {extras = ["email"], version = "^2.12.5"}
 python-dotenv = "^1.2.1"
 python-telegram-bot = "^22.6"
-google-cloud-bigquery = "^3.40.0"
-pandas-gbq = "^0.33.0"
 fastapi = "^0.129.0"
 jinja2 = "^3.1.6"
 uvicorn = "^0.41.0"
-numpy = "^2.4.2"
 psycopg2-binary = "^2.9.11"
 alembic = "^1.18.4"
 itsdangerous = "^2.2.0"
 starlette = "^0.46.0"
 beautifulsoup4 = "^4.12.0"
-openpyxl = "^3.1.5"
+mercadopago = "^2.3.0"
+tzdata = "^2025.3"
 
 
 [build-system]

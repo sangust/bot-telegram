@@ -24,7 +24,6 @@ app.include_router(dashboard)
 app.include_router(auth)
 app.include_router(subscription)
 
-
 @app.get("/health")
 async def healthcheck():
     db_ok = check_db_connection()

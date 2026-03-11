@@ -1,4 +1,6 @@
+import ast
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 #carrega as variavel de ambiente (.env)
@@ -18,6 +20,69 @@ def _optional_env(name: str, default: str | None = None) -> str | None:
         return default
     value = value.strip()
     return value or default
+
+
+def _normalize_proxies(values: list[str]) -> list[str]:
+    normalized: list[str] = []
+    for value in values:
+        candidate = value.strip().strip('"').strip("'")
+        if candidate.startswith(("http://", "https://", "socks5://", "socks5h://")):
+            normalized.append(candidate)
+    return normalized
+
+
+def _parse_proxy_urls(raw_value: str | None) -> list[str]:
+    if not raw_value:
+        return []
+
+    text = raw_value.strip()
+    if not text:
+        return []
+
+    if text.startswith("["):
+        try:
+            parsed = ast.literal_eval(text)
+        except (ValueError, SyntaxError):
+            parsed = None
+        if isinstance(parsed, (list, tuple)):
+            return _normalize_proxies([str(item) for item in parsed])
+
+    if "," in text:
+        return _normalize_proxies(text.split(","))
+
+    return _normalize_proxies([text])
+
+
+def _load_proxy_urls() -> list[str]:
+    proxies = _parse_proxy_urls(_optional_env("ML_PROXY_URLS", ""))
+    if proxies:
+        return proxies
+
+    env_path = Path(__file__).resolve().parents[3] / ".env"
+    if not env_path.exists():
+        return []
+
+    lines = env_path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        if "=" not in line:
+            continue
+
+        key, raw_value = line.split("=", 1)
+        if key.strip() != "ML_PROXY_URLS":
+            continue
+
+        buffer = raw_value.strip()
+        if buffer.startswith("[") and not buffer.rstrip().endswith("]"):
+            parts = [buffer]
+            for next_line in lines[index + 1:]:
+                parts.append(next_line.strip())
+                if next_line.strip().endswith("]"):
+                    break
+            buffer = "\n".join(parts)
+
+        return _parse_proxy_urls(buffer)
+
+    return []
 
 #banco de dados
 DATABASE_URL = _required_env("DATABASE_URL")
@@ -49,9 +114,10 @@ BASE_URL = _required_env("BASE_URL")
 SECRET_KEY = _required_env("SECRET_KEY")
 
 #gateway de pagamento
-ABACATEPAY_API_KEY = _optional_env("ABACATEPAY_API_KEY")
-ABACATEPAY_API_URL = _optional_env("ABACATEPAY_API_URL", "https://api.abacatepay.com/v1")
-ABACATEPAY_WEBHOOK_SECRET = _optional_env("ABACATEPAY_WEBHOOK_SECRET")
+MERCADOPAGO_ACCESS_TOKEN = _optional_env("MERCADOPAGO_ACCESS_TOKEN")
+MERCADOPAGO_API_URL = _optional_env("MERCADOPAGO_API_URL", "https://api.mercadopago.com")
+MERCADOPAGO_WEBHOOK_SECRET = _optional_env("MERCADOPAGO_WEBHOOK_SECRET")
+MERCADOPAGO_CURRENCY_ID = _optional_env("MERCADOPAGO_CURRENCY_ID", "BRL")
 
 #OAuth para logar
 GOOGLE_CLIENT_ID: str     = _required_env("GOOGLE_CLIENT_ID")
@@ -77,9 +143,14 @@ MAX_PRODUCTS_PER_RUN = int(_optional_env("MAX_PRODUCTS_PER_RUN", "50"))
 DELIVERY_JOB_MAX_ATTEMPTS = int(_optional_env("DELIVERY_JOB_MAX_ATTEMPTS", "3"))
 DELIVERY_JOB_RETRY_MINUTES = int(_optional_env("DELIVERY_JOB_RETRY_MINUTES", "10"))
 
-#Mercado livre auth
+#Mercado livre
 ML_MIN_DISCOUNT: float = float(os.getenv("ML_MIN_DISCOUNT", "10"))   # % mínimo de desconto
 ML_MAX_PER_CAT:  int   = int(os.getenv("ML_MAX_PER_CAT",   "100"))   # produtos por categoria
+ML_BASE_URL: str = _optional_env("ML_BASE_URL", "https://lista.mercadolivre.com.br")
+
+# Proxies para scrapers (lista separada por vírgula: http://user:pass@host:port,...)
+_raw_proxies = _optional_env("ML_PROXY_URLS", "")
+PROXY_URLS: list[str] = _parse_proxy_urls(_raw_proxies) or _load_proxy_urls()
 
 
 #Lojas
@@ -115,37 +186,25 @@ NUVEMSHOP_URLS : dict[str, str] = {
     "TakeOff":"https://takeoffcollection.com.br/",
 }
 
+# category label → slug usado na URL de lista.mercadolivre.com.br
 ML_CATEGORIES: dict[str, str] = {
-    "ML-Monitor":           "monitor-led",
-    "ML-Notebook":          "notebook",
-    "ML-PC-Gamer":          "pc-gamer",
-    "ML-SSD":               "ssd",
-    "ML-Memória-RAM":       "memoria-ram",
-    "ML-Placa-de-Video":    "placa-de-video",
-    "ML-Processador":       "processador",
-    "ML-Fonte-PC":          "fonte-computador",
-    "ML-Gabinete":          "gabinete-computador",
-
-    "ML-Teclado":           "teclado-gamer",
-    "ML-Mouse":             "mouse-gamer",
-    "ML-Headset":           "headset-gamer",
-    "ML-Webcam":            "webcam",
-    "ML-Mousepad":          "mousepad-gamer",
-
-    "ML-Smartphone":        "smartphone",
-    "ML-Tablet":            "tablet",
-    "ML-Smartwatch":        "smartwatch",
-
-    "ML-Fone-Bluetooth":    "fone-ouvido-bluetooth",
-    "ML-Caixa-de-Som":      "caixa-de-som-bluetooth",
-    "ML-Camera-Digital":    "camera-digital",
-    "ML-Camera-Seguranca":  "camera-seguranca",
-
-    "ML-Smart-TV":          "smart-tv",
-    "ML-Projetor":          "projetor",
-
-    "ML-Roteador":          "roteador-wifi",
-    "ML-Switch":            "switch-rede",
+    "ML-Monitor":        "monitor gamer",
+    "ML-Notebook":       "notebook",
+    "ML-PC-Gamer":       "pc gamer",
+    "ML-SSD":            "ssd",
+    "ML-Memória-RAM":    "memória ram",
+    "ML-Placa-de-Video": "placa de vídeo",
+    "ML-Processador":    "processador",
+    "ML-Teclado":        "teclado gamer",
+    "ML-Mouse":          "mouse gamer",
+    "ML-Headset":        "headset gamer",
+    "ML-Webcam":         "webcam",
+    "ML-Smartphone":     "smartphone",
+    "ML-Tablet":         "tablet",
+    "ML-Smartwatch":     "smartwatch",
+    "ML-Fone-Bluetooth": "fone bluetooth",
+    "ML-Caixa-de-Som":   "caixa de som bluetooth",
+    "ML-Camera-Digital": "câmera digital",
+    "ML-Smart-TV":       "smart tv",
+    "ML-Projetor":       "projetor",
 }
-
-ML_BASE_URL     = "https://lista.mercadolivre.com.br"

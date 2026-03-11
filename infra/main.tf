@@ -149,9 +149,8 @@ resource "azurerm_linux_virtual_machine" "afilibot" {
     google_client_id          = var.google_client_id
     google_client_secret      = var.google_client_secret
     google_redirect_uri       = var.google_redirect_uri
-    abacatepay_api_key        = var.abacatepay_api_key
-    abacatepay_api_url        = var.abacatepay_api_url
-    abacatepay_webhook_secret = var.abacatepay_webhook_secret
+    mercadopago_access_token  = var.mercadopago_access_token
+    mercadopago_webhook_secret = var.mercadopago_webhook_secret
     base_url                  = var.base_url
     bot_token_1               = var.bot_token_1
     bot_token_2               = var.bot_token_2
