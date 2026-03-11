@@ -70,7 +70,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: infra
-        run: terraform init
+        run: terraform init -reconfigure
 
       - name: Terraform Import Existing Azure Resources
         working-directory: infra
