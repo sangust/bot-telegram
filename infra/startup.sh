@@ -1,23 +1,19 @@
 #!/bin/bash
 set -e
 
-# ── Atualiza sistema ───────────────────────────────────────────────────────────
 apt-get update -y
 apt-get install -y nginx certbot python3-certbot-nginx
 
-# ── Instala Docker ─────────────────────────────────────────────────────────────
 curl -fsSL https://get.docker.com | sh
 systemctl start docker
 systemctl enable docker
 
-# espera docker daemon iniciar
 until docker info >/dev/null 2>&1; do
   sleep 2
 done
 
 sleep 10
 
-# ── Sobe o Postgres ────────────────────────────────────────────────────────────
 if ! docker ps -a --format '{{.Names}}' | grep -q '^afilibot_db$'; then
   docker run -d \
     --name afilibot_db \
@@ -34,7 +30,6 @@ fi
 
 sleep 20
 
-# ── Cria o .env ────────────────────────────────────────────────────────────────
 mkdir -p /opt/afilibot
 cat > /opt/afilibot/.env <<EOF
 DATABASE_URL="${database_url}"
@@ -51,14 +46,12 @@ BOT_TOKEN_2="${bot_token_2}"
 BOT_TOKEN_3="${bot_token_3}"
 EOF
 
-# ── Login Docker Hub e pull da imagem ──────────────────────────────────────────
 echo "${dockerhub_token}" | docker login -u "${dockerhub_username}" --password-stdin
 docker pull ${dockerhub_username}/afilibot:latest
 
 docker rm -f afilibot afilibot-web afilibot-worker afilibot-scraper >/dev/null 2>&1 || true
 docker ps -a --format '{{.Names}}' | grep '^afilibot-worker-' | xargs -r docker rm -f >/dev/null 2>&1 || true
 
-# ── Migrations ────────────────────────────────────────────────────────────────
 docker run --rm \
   --env-file /opt/afilibot/.env \
   --network host \
@@ -66,7 +59,6 @@ docker run --rm \
   ${dockerhub_username}/afilibot:latest \
   python -m app.runtime
 
-# ── Sobe o app na porta 8000 (Nginx faz proxy para cá) ────────────────────────
 docker run -d \
   --name afilibot-web \
   --restart always \
@@ -75,9 +67,9 @@ docker run -d \
   -e APP_ROLE=web \
   ${dockerhub_username}/afilibot:latest
 
-for worker_index in $(seq 1 $${worker_count:-1}); do
+for worker_index in $(seq 1 ${worker_count}); do
   docker run -d \
-    --name afilibot-worker-$${worker_index} \
+    --name afilibot-worker-${worker_index} \
     --restart always \
     --network host \
     --env-file /opt/afilibot/.env \
@@ -93,6 +85,7 @@ docker run -d \
   -e APP_ROLE=scraper \
   ${dockerhub_username}/afilibot:latest
 
+web_ready=0
 for i in $(seq 1 30); do
   if curl -fsS http://127.0.0.1:8000/health >/dev/null; then
     web_ready=1
@@ -101,12 +94,11 @@ for i in $(seq 1 30); do
   sleep 5
 done
 
-if [ "$${web_ready:-0}" -ne 1 ]; then
+if [ "$web_ready" != "1" ]; then
   echo "afilibot web não ficou saudável a tempo" >&2
   exit 1
 fi
 
-# ── Configura Nginx como proxy reverso ────────────────────────────────────────
 cat > /etc/nginx/sites-available/afilibot << 'NGINXEOF'
 server {
     listen 80;
@@ -129,7 +121,6 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl restart nginx
 
-# ── Certbot — gera certificado SSL ────────────────────────────────────────────
 sleep 30
 
 certbot --nginx \
