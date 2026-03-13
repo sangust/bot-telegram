@@ -75,9 +75,9 @@ docker run -d \
   -e APP_ROLE=web \
   ${dockerhub_username}/afilibot:latest
 
-for worker_index in $(seq 1 ${worker_count:-1}); do
+for worker_index in $(seq 1 $${worker_count:-1}); do
   docker run -d \
-    --name afilibot-worker-${worker_index} \
+    --name afilibot-worker-$${worker_index} \
     --restart always \
     --network host \
     --env-file /opt/afilibot/.env \
@@ -101,7 +101,7 @@ for i in $(seq 1 30); do
   sleep 5
 done
 
-if [ "${web_ready:-0}" -ne 1 ]; then
+if [ "$${web_ready:-0}" -ne 1 ]; then
   echo "afilibot web não ficou saudável a tempo" >&2
   exit 1
 fi
