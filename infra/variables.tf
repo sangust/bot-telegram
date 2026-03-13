@@ -1,13 +1,24 @@
-variable "location" {
-  description = "Região do Azure onde os recursos serão criados"
+variable "gcp_project_id" {
+  description = "ID do projeto GCP onde os recursos serão criados"
   type        = string
-  default     = "eastus2"
 }
 
-variable "vm_size" {
-  description = "Tamanho da VM Azure para rodar web, workers e serviços auxiliares"
+variable "region" {
+  description = "Região da GCP onde os recursos serão criados"
   type        = string
-  default     = "Standard_D2as_v4"
+  default     = "us-central1"
+}
+
+variable "zone" {
+  description = "Zona da GCP para a VM"
+  type        = string
+  default     = "us-central1-a"
+}
+
+variable "machine_type" {
+  description = "Tipo da VM GCP para rodar web, workers e serviços auxiliares"
+  type        = string
+  default     = "e2-medium"
 }
 
 variable "worker_count" {
@@ -88,7 +99,7 @@ variable "mercadopago_webhook_secret" {
 }
 
 variable "base_url" {
-  description = "URL pública da aplicação (ex: http://IP_DA_VM)"
+  description = "URL pública da aplicação"
   type        = string
   # GitHub Secret: TF_VAR_base_url
 }
