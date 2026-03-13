@@ -10,6 +10,11 @@ curl -fsSL https://get.docker.com | sh
 systemctl start docker
 systemctl enable docker
 
+# espera docker daemon iniciar
+until docker info >/dev/null 2>&1; do
+  sleep 2
+done
+
 sleep 10
 
 # ── Sobe o Postgres ────────────────────────────────────────────────────────────
@@ -19,7 +24,7 @@ if ! docker ps -a --format '{{.Names}}' | grep -q '^afilibot_db$'; then
     --restart always \
     -e POSTGRES_DB=afilibot \
     -e POSTGRES_USER=afilibot \
-    -e POSTGRES_PASSWORD=${db_password} \
+    -e POSTGRES_PASSWORD="${db_password}" \
     -v postgres_data:/var/lib/postgresql/data \
     -p 5432:5432 \
     postgres:16-alpine
@@ -31,19 +36,19 @@ sleep 20
 
 # ── Cria o .env ────────────────────────────────────────────────────────────────
 mkdir -p /opt/afilibot
-cat > /opt/afilibot/.env << EOF
-DATABASE_URL=${database_url}
-SECRET_KEY=${secret_key}
+cat > /opt/afilibot/.env <<EOF
+DATABASE_URL="${database_url}"
+SECRET_KEY="${secret_key}"
 APP_ENV=production
-GOOGLE_CLIENT_ID=${google_client_id}
-GOOGLE_CLIENT_SECRET=${google_client_secret}
-GOOGLE_REDIRECT_URI=${google_redirect_uri}
-MERCADOPAGO_ACCESS_TOKEN=${mercadopago_access_token}
-MERCADOPAGO_WEBHOOK_SECRET=${mercadopago_webhook_secret}
-BASE_URL=${base_url}
-BOT_TOKEN_1=${bot_token_1}
-BOT_TOKEN_2=${bot_token_2}
-BOT_TOKEN_3=${bot_token_3}
+GOOGLE_CLIENT_ID="${google_client_id}"
+GOOGLE_CLIENT_SECRET="${google_client_secret}"
+GOOGLE_REDIRECT_URI="${google_redirect_uri}"
+MERCADOPAGO_ACCESS_TOKEN="${mercadopago_access_token}"
+MERCADOPAGO_WEBHOOK_SECRET="${mercadopago_webhook_secret}"
+BASE_URL="${base_url}"
+BOT_TOKEN_1="${bot_token_1}"
+BOT_TOKEN_2="${bot_token_2}"
+BOT_TOKEN_3="${bot_token_3}"
 EOF
 
 # ── Login Docker Hub e pull da imagem ──────────────────────────────────────────
@@ -70,9 +75,9 @@ docker run -d \
   -e APP_ROLE=web \
   ${dockerhub_username}/afilibot:latest
 
-for worker_index in $(seq 1 ${worker_count}); do
+for worker_index in $(seq 1 ${worker_count:-1}); do
   docker run -d \
-    --name afilibot-worker-$${worker_index} \
+    --name afilibot-worker-${worker_index} \
     --restart always \
     --network host \
     --env-file /opt/afilibot/.env \
@@ -96,7 +101,7 @@ for i in $(seq 1 30); do
   sleep 5
 done
 
-if [ "$${web_ready:-0}" -ne 1 ]; then
+if [ "${web_ready:-0}" -ne 1 ]; then
   echo "afilibot web não ficou saudável a tempo" >&2
   exit 1
 fi
@@ -125,7 +130,6 @@ nginx -t
 systemctl restart nginx
 
 # ── Certbot — gera certificado SSL ────────────────────────────────────────────
-# Aguarda DNS propagar antes de pedir o certificado
 sleep 30
 
 certbot --nginx \
@@ -135,6 +139,5 @@ certbot --nginx \
   -d afilibot.shop \
   -d www.afilibot.shop
 
-# Renova automaticamente (já instalado pelo certbot, mas força o timer)
 systemctl enable certbot.timer
 systemctl start certbot.timer
