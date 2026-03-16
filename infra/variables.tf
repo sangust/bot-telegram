@@ -12,7 +12,7 @@ variable "region" {
 variable "zone" {
   description = "Zona da GCP para a VM"
   type        = string
-  default     = "us-central1-a"
+  default     = "us-central1-b"
 }
 
 variable "machine_type" {
