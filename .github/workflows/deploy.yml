@@ -110,25 +110,31 @@ jobs:
 
       - name: Deploy containers
         run: |
+          REMOTE_SCRIPT=$(base64 -w 0 << 'SCRIPT'
+          set -e
+
+          for i in $(seq 1 60); do
+            if command -v docker >/dev/null 2>&1 \
+              && sudo docker compose version >/dev/null 2>&1 \
+              && [ -f /opt/afilibot/deploy/docker-compose.yml ]; then
+              break
+            fi
+            sleep 10
+          done
+
+          command -v docker >/dev/null 2>&1
+          sudo docker compose version >/dev/null 2>&1
+          test -f /opt/afilibot/deploy/docker-compose.yml
+          test -f /opt/afilibot/.env
+
+          cd /opt/afilibot
+          sudo docker compose -f deploy/docker-compose.yml --env-file .env pull
+          sudo docker compose -f deploy/docker-compose.yml --env-file .env up -d
+          SCRIPT
+          )
+
           gcloud compute ssh afilibot \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --zone=${{ env.TF_VAR_zone }} \
             --quiet \
-            --command='bash -lc "
-              set -e
-              for i in $(seq 1 60); do
-                if command -v docker >/dev/null 2>&1 && sudo docker compose version >/dev/null 2>&1 && [ -f /opt/afilibot/deploy/docker-compose.yml ]; then
-                  break
-                fi
-                sleep 10
-              done
-
-              command -v docker >/dev/null 2>&1
-              sudo docker compose version >/dev/null 2>&1
-              test -f /opt/afilibot/deploy/docker-compose.yml
-              test -f /opt/afilibot/.env
-
-              cd /opt/afilibot
-              sudo docker compose -f deploy/docker-compose.yml --env-file .env pull
-              sudo docker compose -f deploy/docker-compose.yml --env-file .env up -d
-            "'
+            --command="echo '${REMOTE_SCRIPT}' | base64 -d | bash -l"
