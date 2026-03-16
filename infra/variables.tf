@@ -18,7 +18,7 @@ variable "zone" {
 variable "machine_type" {
   description = "Tipo da VM GCP para rodar web, workers e serviços auxiliares"
   type        = string
-  default     = "e2-medium"
+  default     = "n2-standard-2"
 }
 
 variable "worker_count" {
