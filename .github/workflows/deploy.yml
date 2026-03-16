@@ -84,7 +84,6 @@ jobs:
       - name: Terraform Apply
         working-directory: infra
         run: terraform apply -auto-approve tfplan
-      
 
       - name: Create env for docker compose
         run: |
@@ -105,6 +104,7 @@ jobs:
           BOT_TOKEN_1=${{ secrets.BOT_TOKEN_1 }}
           BOT_TOKEN_2=${{ secrets.BOT_TOKEN_2 }}
           BOT_TOKEN_3=${{ secrets.BOT_TOKEN_3 }}
+          DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/afilibot:latest
           EOF" && break || sleep 15;
           done
 
@@ -114,4 +114,9 @@ jobs:
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --zone=${{ env.TF_VAR_zone }} \
             --quiet \
-            --command="cd /opt/afilibot && docker compose pull && docker compose up -d"
+            --command="
+            while ! command -v docker >/dev/null 2>&1; do sleep 10; done;
+            cd /opt/afilibot && \
+            docker compose -f deploy/docker-compose.yml --env-file .env pull && \
+            docker compose -f deploy/docker-compose.yml --env-file .env up -d
+            "
