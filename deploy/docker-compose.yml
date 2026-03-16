@@ -17,8 +17,7 @@ services:
     env_file: .env
     environment:
       APP_ROLE: worker
-    deploy:
-      replicas: 3
+
 
   scraper:
     image: ${DOCKER_IMAGE}
