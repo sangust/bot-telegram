@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+
+  web:
+    image: ${DOCKER_IMAGE}
+    restart: always
+    env_file: .env
+    environment:
+      APP_ROLE: web
+    ports:
+      - "8000:8000"
+
+  worker:
+    image: ${DOCKER_IMAGE}
+    restart: always
+    env_file: .env
+    environment:
+      APP_ROLE: worker
+    deploy:
+      replicas: 3
+
+  scraper:
+    image: ${DOCKER_IMAGE}
+    restart: always
+    env_file: .env
+    environment:
+      APP_ROLE: scraper

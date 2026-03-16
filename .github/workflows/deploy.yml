@@ -33,7 +33,7 @@ jobs:
       TF_VAR_machine_type:               ${{ secrets.GCP_MACHINE_TYPE != '' && secrets.GCP_MACHINE_TYPE || 'e2-medium' }}
       TF_VAR_region:                     ${{ secrets.GCP_REGION != '' && secrets.GCP_REGION || 'us-central1' }}
       TF_VAR_zone:                       ${{ secrets.GCP_ZONE != '' && secrets.GCP_ZONE || 'us-central1-a' }}
-      TF_VAR_worker_count:               ${{ secrets.WORKER_COUNT != '' && secrets.WORKER_COUNT || '1' }}
+      TF_VAR_worker_count:               ${{ secrets.WORKER_COUNT != '' && secrets.WORKER_COUNT || '3' }}
 
     steps:
       - name: Checkout
@@ -84,3 +84,32 @@ jobs:
       - name: Terraform Apply
         working-directory: infra
         run: terraform apply -auto-approve tfplan
+      
+
+      - name: Create env for docker compose
+        run: |
+          gcloud compute ssh afilibot-vm \
+            --zone=${{ env.TF_VAR_zone }} \
+            --command="cat > /opt/afilibot/.env << 'EOF'
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI}}
+            MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+            MERCADOPAGO_WEBHOOK_SECRET=${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
+            BASE_URL=${{ secrets.BASE_URL }}
+            BOT_TOKEN_1=${{ secrets.BOT_TOKEN_1 }}
+            BOT_TOKEN_2=${{ secrets.BOT_TOKEN_2 }}
+            BOT_TOKEN_3=${{ secrets.BOT_TOKEN_3 }}
+            EOF"
+
+      - name: Deploy containers
+        run: |
+          gcloud compute ssh afilibot-vm \
+            --zone=${{ env.TF_VAR_zone }} \
+            --command="
+              cd /opt/afilibot &&
+              docker compose pull &&
+              docker compose up -d
+            "
