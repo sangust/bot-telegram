@@ -1,6 +1,12 @@
 version: "3.9"
 
 services:
+  migrate:
+    image: ${DOCKER_IMAGE}
+    restart: always
+    env_file: .env
+    environment:
+      APP_ROLE: migrate
 
   web:
     image: ${DOCKER_IMAGE}

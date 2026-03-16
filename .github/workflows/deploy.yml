@@ -1,9 +1,6 @@
 name: Deploy afilibot
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -92,7 +89,7 @@ jobs:
               --project=${{ secrets.GCP_PROJECT_ID }} \
               --zone=${{ env.TF_VAR_zone }} \
               --quiet \
-              --command="sudo mkdir -p /opt/afilibot && sudo chown $USER:$USER /opt/afilibot && cat > /opt/afilibot/.env << 'EOF'
+              --command="cat > /tmp/.env << 'EOF'
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           SECRET_KEY=${{ secrets.SECRET_KEY }}
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
@@ -122,12 +119,14 @@ jobs:
             sleep 10
           done
 
-          command -v docker >/dev/null 2>&1
-          sudo docker compose version >/dev/null 2>&1
-          test -f /opt/afilibot/deploy/docker-compose.yml
-          test -f /opt/afilibot/.env
+          if [ ! -f /opt/afilibot/deploy/docker-compose.yml ]; then
+            echo "Timeout: startup.sh falhou ou demorou demais."
+            exit 1
+          fi
 
+          sudo mv /tmp/.env /opt/afilibot/.env
           cd /opt/afilibot
+          
           sudo docker compose -f deploy/docker-compose.yml --env-file .env pull
           sudo docker compose -f deploy/docker-compose.yml --env-file .env up -d
           SCRIPT
