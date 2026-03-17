@@ -282,8 +282,8 @@ async def create_checkout(
             "plan": body.plan,
         },
     }
-
-    payment = mercadopago.SDK.preference().create(payload)
+    sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
+    payment = sdk.preference().create(payload)
     url_preference = payment["response"]["init_point"]
     async with httpx.AsyncClient() as client:
         response = await client.post(
