@@ -17,8 +17,8 @@ def _run_source(name: str, operation) -> None:
 
 def run_scraper_pass() -> None:
     logger.info("Iniciando ciclo de scrapers")
-    #_run_source("shopify", lambda: Extractor().shopify())
-    #_run_source("nuvemshop", lambda: Extractor().nuvemshop())
+    _run_source("shopify", lambda: Extractor().shopify())
+    _run_source("nuvemshop", lambda: Extractor().nuvemshop())
     logger.info(
         "Executando scraper do Mercado Livre com %d categorias e %d proxies configurados",
         len(ML_CATEGORIES),
