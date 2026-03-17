@@ -241,8 +241,6 @@ async def subscription_status(request: Request, db: Session = Depends(get_db)):
     }
 
 
-# ── Checkout ──────────────────────────────────────────────────────────────────
-
 @subscription.post("/api/subscription/checkout")
 async def create_checkout(
     request: Request,
@@ -257,9 +255,11 @@ async def create_checkout(
     if not plan:
         raise HTTPException(status_code=400, detail="Plano inválido")
 
+    # A payload para o SDK 'preference' deve seguir a estrutura correta.
+    # As chaves de auto_return e notification_url ficam fora de "back_urls".
     payload = {
         "items": [{
-            "id": body.plan,
+            "id": body.plan.value if hasattr(body.plan, "value") else str(body.plan),
             "title": plan["name"],
             "description": "Automação de afiliados",
             "quantity": 1,
@@ -279,27 +279,24 @@ async def create_checkout(
         "auto_return": "approved",
         "metadata": {
             "user_id": user["google_id"],
-            "plan": body.plan,
+            "plan": body.plan.value if hasattr(body.plan, "value") else str(body.plan),
         },
     }
+    
     sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
-    payment = sdk.preference().create(payload)
-    url_preference = payment["response"]["init_point"]
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url_preference,
-            json=payload,
-            headers=_mercadopago_headers(),
-            timeout=15.0,
-        )
+    
+    # 1. Cria a preferência de checkout no Mercado Pago via SDK
+    payment_response = sdk.preference().create(payload)
 
-    if response.status_code not in (200, 201):
-        logger.error("Erro Mercado Pago checkout: %s", response.text)
-        raise HTTPException(status_code=502, detail="Erro ao criar checkout.")
+    # 2. Valida se a criação funcionou
+    if payment_response.get("status") not in (200, 201):
+        logger.error("Erro Mercado Pago checkout: %s", payment_response)
+        raise HTTPException(status_code=502, detail="Erro ao criar checkout no Mercado Pago.")
 
-    checkout = response.json()
-    billing_id = checkout.get("id")
-    url = checkout.get("init_point") or checkout.get("sandbox_init_point")
+    checkout_data = payment_response.get("response", {})
+    billing_id = checkout_data.get("id")
+    # Usa init_point para produção, sandbox_init_point para testes
+    url = checkout_data.get("init_point") 
 
     if not billing_id:
         raise HTTPException(status_code=502, detail="Mercado Pago não retornou id do checkout")
@@ -307,13 +304,18 @@ async def create_checkout(
     if not url:
         raise HTTPException(status_code=502, detail="Mercado Pago não retornou URL de pagamento")
 
+    # 3. Salva no banco de dados local
     repo = SubscriptionRepository(db)
+    
+    # Calculando os centavos de forma segura
+    amount_cents = int(round(plan["amount_reais"] * 100))
+    
     try:
         repo.create_or_update_pending(
             user_id    = user["google_id"],
             billing_id = billing_id,
             plan       = body.plan,
-            amount     = plan["amount_cents"],
+            amount     = amount_cents,
         )
         db.commit()
     except Exception:
@@ -321,6 +323,7 @@ async def create_checkout(
         logger.exception("Erro ao salvar subscription pending")
         raise HTTPException(status_code=500, detail="Erro interno ao salvar checkout.")
 
+    # 4. Retorna a URL para o frontend redirecionar o usuário
     return {"payment_url": url}
 
 
