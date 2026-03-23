@@ -141,7 +141,7 @@ class User(BASE):
     google_id        = Column(String(100), primary_key=True, nullable=False)
     email            = Column(String(200), unique=True, nullable=False)
     name             = Column(String(200))
-    subplain         = Column(Enum(SubPlains), default=SubPlains.freemium, nullable=False)
+    subplain         = Column(Enum(SubPlains), default=SubPlains.free, nullable=False)
     trial_started_at = Column(DateTime(timezone=True), nullable=True, default=_now)
     created_at       = Column(DateTime(timezone=True), default=_now, nullable=False)
     updated_at       = Column(DateTime(timezone=True), default=_now, onupdate=_now)
